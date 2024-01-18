@@ -1,5 +1,5 @@
 // ignore_for_file: unused_local_variable
-
+//a
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -122,7 +122,9 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => PadrePage(nombre: nombre, )),
+                  builder: (context) => PadrePage(
+                        nombre: nombre,
+                      )),
             );
           } else if (permiso == 'psicologo') {
             Navigator.pushReplacement(
