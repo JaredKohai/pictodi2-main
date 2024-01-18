@@ -3,6 +3,7 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pictodi2/presentation/authentication/login.dart';
 import 'generador.dart';
+import 'generadoia.dart';
 import 'package:firebase_storage/firebase_storage.dart'
     as firebase_storage; // Importa el paquete de Firebase Storage
 
@@ -68,24 +69,63 @@ class NinoPage extends StatelessWidget {
     );
   }
 
+  Future<void> _showActivity(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Ir al Generador'),
+          content: Text('¿Quieres ir al generador de pictogramas con IA?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+                // Navegar a la página GeneradorIA
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => GeneradorIA()),
+                );
+              },
+              child: Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bienvenido, $nombre'),
+        title: Text('Bienvenido, ${user?.displayName ?? ''}'),
         actions: [
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () {
+              // Mostrar confirmación antes de ir al generador
               _showGeneradorConfirmation(context);
             },
           ),
           IconButton(
             icon: Icon(Icons.account_circle_outlined),
             onPressed: () {
+              // Mostrar menú de confirmación para cerrar sesión
               _showLogoutConfirmation(context);
             },
           ),
+          IconButton(
+            icon: Icon(Icons.assignment_late_outlined),
+            onPressed: () => _showActivity(context),
+          )
         ],
       ),
       body: Column(
@@ -105,51 +145,6 @@ class NinoPage extends StatelessWidget {
           SizedBox(height: 20),
           const Text('Texto o descripción de las actividades pendientes'),
           SizedBox(height: 20),
-          Text(
-            'Pictogramas',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10),
-          // Row de imágenes
-          FutureBuilder(
-            future: Future.wait([
-              '2024-01-12 19:14:07.537816.png',
-              '2024-01-11 07:23:02.310851.png',
-              '2024-01-18 05:26:01.323700.png',
-              '2024-01-18 05:28:59.653639.png',
-              '2024-01-18 05:34:06.442461.png'
-            ].map((imageName) async {
-              final ref = firebase_storage.FirebaseStorage.instance
-                  .ref()
-                  .child('images/$imageName');
-              return await ref.getDownloadURL();
-            })),
-            builder: (context, AsyncSnapshot<List<String>> snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                List<String> imageUrls = snapshot.data!;
-                return Container(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: imageUrls.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.network(
-                          imageUrls[index],
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      );
-                    },
-                  ),
-                );
-              } else {
-                return CircularProgressIndicator();
-              }
-            },
-          ),
           Expanded(
             child: Center(
               child: Text('Bienvenido!, $nombre'),
@@ -166,9 +161,13 @@ class NinoPage extends StatelessWidget {
           TabItem(icon: Icons.account_circle_outlined, title: 'Cuenta'),
         ],
         onTap: (index) {
+          // Maneja la acción cuando se toca un ítem
+          // Puedes agregar lógica adicional aquí según el índice seleccionado
           if (index == 1) {
+            // Mostrar confirmación antes de ir al generador
             _showGeneradorConfirmation(context);
           } else if (index == 3) {
+            // Mostrar menú de confirmación para cerrar sesión
             _showLogoutConfirmation(context);
           }
         },
