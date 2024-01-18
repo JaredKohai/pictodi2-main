@@ -18,6 +18,8 @@ class _AnadirPsicologoPageState extends State<AnadirPsicologoPage> {
   final TextEditingController _gradoController = TextEditingController();
   final TextEditingController _grupoController = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,62 +28,104 @@ class _AnadirPsicologoPageState extends State<AnadirPsicologoPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextFormField(
-              controller: _nombreController,
-              decoration: InputDecoration(labelText: 'Nombre del Psicólogo'),
-            ),
-            TextFormField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Correo del Psicólogo'),
-            ),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration:
-                  InputDecoration(labelText: 'Contraseña del Psicólogo'),
-            ),
-            TextFormField(
-              controller: _especialidadController,
-              decoration:
-                  InputDecoration(labelText: 'Especialidad del Psicólogo'),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _gradoController,
-                    decoration:
-                        InputDecoration(labelText: 'Grado del Psicólogo'),
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildTextFormField(
+                controller: _nombreController,
+                labelText: 'Nombre del Psicólogo',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresa el nombre del Psicólogo';
+                  }
+                  return null;
+                },
+              ),
+              _buildTextFormField(
+                controller: _emailController,
+                labelText: 'Correo del Psicólogo',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresa el correo del Psicólogo';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Formato de correo no válido. Debe contener "@"';
+                  }
+                  return null;
+                },
+              ),
+              _buildTextFormField(
+                controller: _passwordController,
+                labelText: 'Contraseña del Psicólogo',
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresa la contraseña del Psicólogo';
+                  }
+                  if (value.length < 6) {
+                    return 'La contraseña debe tener al menos 6 caracteres.';
+                  }
+                  return null;
+                },
+              ),
+              _buildTextFormField(
+                controller: _especialidadController,
+                labelText: 'Especialidad del Psicólogo',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresa la especialidad del Psicólogo';
+                  }
+                  return null;
+                },
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextFormField(
+                      controller: _gradoController,
+                      labelText: 'Grado del Psicólogo',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Ingresa el grado del Psicólogo';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _grupoController,
-                    decoration:
-                        InputDecoration(labelText: 'Grupo del Psicólogo'),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextFormField(
+                      controller: _grupoController,
+                      labelText: 'Grupo del Psicólogo',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Ingresa el grupo del Psicólogo';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                _registrarPsicologo();
-              },
-              child: const Text('Registrar Psicólogo'),
-            ),
-          ],
+                ],
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  _registrarPsicologo();
+                },
+                child: const Text('Registrar Psicólogo'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   void _registrarPsicologo() {
-    if (_camposNoVacios() && _validarCampos()) {
+    if (_formKey.currentState?.validate() ?? false) {
       Crear().registerPsicologo(
         email: _emailController.text,
         password: _passwordController.text,
@@ -99,17 +143,22 @@ class _AnadirPsicologoPageState extends State<AnadirPsicologoPage> {
     }
   }
 
-  bool _camposNoVacios() {
-    return _nombreController.text.isNotEmpty &&
-        _emailController.text.isNotEmpty &&
-        _passwordController.text.isNotEmpty &&
-        _especialidadController.text.isNotEmpty &&
-        _gradoController.text.isNotEmpty &&
-        _grupoController.text.isNotEmpty;
-  }
-
-  bool _validarCampos() {
-    // Puedes agregar más lógica de validación según tus requisitos
-    return true;
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String labelText,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(labelText: labelText),
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        validator: validator,
+      ),
+    );
   }
 }

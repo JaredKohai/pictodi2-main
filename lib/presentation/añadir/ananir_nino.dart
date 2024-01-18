@@ -171,6 +171,7 @@ class _AnadirNinoPageState extends State<AnadirNinoPage> {
               TextFormField(
                 controller: _gradoController,
                 keyboardType: TextInputType.number,
+                maxLength: 1,
                 decoration: const InputDecoration(labelText: 'Grado'),
               ),
               TextFormField(

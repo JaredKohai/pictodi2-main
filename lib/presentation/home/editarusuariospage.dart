@@ -18,6 +18,8 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
 
   String? _permiso;
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -58,32 +60,69 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _nombreController,
-              decoration: InputDecoration(labelText: 'Nombre'),
-            ),
-            TextField(
-              controller: _gradoController,
-              decoration: InputDecoration(labelText: 'Grado'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _grupoController,
-              decoration: InputDecoration(labelText: 'Grupo'),
-              maxLength: 1,
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Lógica para guardar los cambios según el permiso
-                _guardarCambios();
-              },
-              child: Text('Guardar Cambios'),
-            ),
-          ],
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_permiso !=
+                  'padre') // Mostrar solo si el permiso no es "padre"
+                TextFormField(
+                  controller: _nombreController,
+                  decoration: InputDecoration(labelText: 'Nombre'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Campo vacío';
+                    }
+                    return null;
+                  },
+                ),
+              if (_permiso !=
+                  'padre') // Mostrar solo si el permiso no es "padre"
+                TextFormField(
+                  controller: _gradoController,
+                  decoration: InputDecoration(labelText: 'Grado'),
+                  maxLength: 1,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Campo vacío';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Solo se permite un número';
+                    }
+                    return null;
+                  },
+                ),
+              if (_permiso !=
+                  'padre') 
+                TextFormField(
+                  controller: _grupoController,
+                  decoration: InputDecoration(labelText: 'Grupo'),
+                  maxLength: 1,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Campo vacío';
+                    }
+                    if (!RegExp(r'^[a-zA-Z]+$').hasMatch(value)) {
+                      return 'Solo se permite una letra';
+                    }
+                    return null;
+                  },
+                ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Validar el formulario antes de guardar los cambios
+                  if (_formKey.currentState?.validate() ?? false) {
+                    // Lógica para guardar los cambios según el permiso
+                    _guardarCambios();
+                  }
+                },
+                child: Text('Guardar Cambios'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -98,16 +137,9 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
       String nuevoGrupo = _grupoController.text;
 
       // Actualizar los campos correspondientes según el permiso
-      if (_permiso == 'profesor') {
-        await FirebaseFirestore.instance
-            .collection(widget.category)
-            .doc(widget.docId)
-            .update({
-          'nombre': nuevoNombre,
-          'grado': nuevoGrado,
-          'grupo': nuevoGrupo,
-        });
-      } else if (_permiso == 'nino') {
+      if (_permiso == 'profesor' ||
+          _permiso == 'nino' ||
+          _permiso == 'psicologo') {
         await FirebaseFirestore.instance
             .collection(widget.category)
             .doc(widget.docId)
@@ -122,15 +154,6 @@ class _EditarUsuarioPageState extends State<EditarUsuarioPage> {
             .doc(widget.docId)
             .update({
           'nombre': nuevoNombre,
-        });
-      } else if (_permiso == 'psicologo') {
-        await FirebaseFirestore.instance
-            .collection(widget.category)
-            .doc(widget.docId)
-            .update({
-          'nombre': nuevoNombre,
-          'grado': nuevoGrado,
-          'grupo': nuevoGrupo,
         });
       }
 

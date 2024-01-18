@@ -103,6 +103,7 @@ class DirectorPage extends StatelessWidget {
           } else if (index == 3) {
             _showAccountMenu(context);
           }
+          
         },
       ),
     );
@@ -207,15 +208,13 @@ class DirectorPage extends StatelessWidget {
     await showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return Container(
-          child: Wrap(
-            children: <Widget>[
-              _buildEditCategoryTile(context, 'profesores'),
-              _buildEditCategoryTile(context, 'niños'),
-              _buildEditCategoryTile(context, 'padres'),
-              _buildEditCategoryTile(context, 'psicologos'),
-            ],
-          ),
+        return Wrap(
+          children: <Widget>[
+            _buildEditCategoryTile(context, 'profesores'),
+            _buildEditCategoryTile(context, 'niños'),
+            _buildEditCategoryTile(context, 'padres'),
+            _buildEditCategoryTile(context, 'psicologos'),
+          ],
         );
       },
     );
@@ -235,7 +234,6 @@ class DirectorPage extends StatelessWidget {
   }
 
   void _navigateToEditCategory(BuildContext context, String category) {
-    // Navega a la página ListaRegistrosPage con la categoría seleccionada
     Navigator.push(
       context,
       MaterialPageRoute(

@@ -26,7 +26,12 @@ class _GeneradorPageState extends State<GeneradorPage> {
         final data = json.decode(response.body);
         setState(() {
           _imageResults = List.from(data['hits'])
-              .map((result) => ImageResult.fromJson(result))
+              .map((result) => ImageResult.fromJson({
+                    'tags': result['tags'],
+                    'previewURL': result['previewURL'],
+                    'category':
+                        'Tu Categoría Aquí', // Asigna la categoría deseada
+                  }))
               .toList();
         });
       } else {
@@ -160,6 +165,8 @@ class _GeneradorPageState extends State<GeneradorPage> {
         'title': editedTitle,
         'description': editedDescription,
         'imageUrl': downloadUrl,
+        'category': _imageResults[0]
+            .category, // Asigna la categoría de la primera imagen (puedes ajustarlo según tus necesidades)
         'timestamp': FieldValue.serverTimestamp(),
       });
 
@@ -191,13 +198,19 @@ class _GeneradorPageState extends State<GeneradorPage> {
 class ImageResult {
   final String tags;
   final String previewURL;
+  final String category;
 
-  ImageResult({required this.tags, required this.previewURL});
+  ImageResult({
+    required this.tags,
+    required this.previewURL,
+    required this.category,
+  });
 
   factory ImageResult.fromJson(Map<String, dynamic> json) {
     return ImageResult(
       tags: json['tags'],
       previewURL: json['previewURL'],
+      category: json['category'],
     );
   }
 }
