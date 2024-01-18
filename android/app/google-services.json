@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "965213168409",
+    "project_id": "feafa-b9aef",
+    "storage_bucket": "feafa-b9aef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:965213168409:android:0f49523ab455259b985b88",
+        "android_client_info": {
+          "package_name": "com.example.pictodi2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCk3ww563A76jGxfMRWdjYqs2axzFT6Y7M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
