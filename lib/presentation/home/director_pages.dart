@@ -7,8 +7,8 @@ import 'package:pictodi2/presentation/authentication/login.dart';
 import 'package:pictodi2/presentation/home/editarusuariospage.dart';
 import '../añadir/ananir_maestro.dart';
 import '../añadir/ananir_psicologo.dart';
-import '../añadir/ananir_nino.dart';
 import '../añadir/ananir_padre.dart';
+import '../añadir/ananir_nino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DirectorPage extends StatelessWidget {
