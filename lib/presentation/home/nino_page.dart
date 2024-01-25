@@ -5,7 +5,7 @@ import 'package:pictodi2/presentation/authentication/login.dart';
 import '../home/generadoia.dart';
 import '../home/generador.dart';
 import 'package:firebase_storage/firebase_storage.dart'
-    as firebase_storage; // Importa el paquete de Firebase Storage
+    as firebase_storage; 
 
 class NinoPage extends StatelessWidget {
   final String nombre;

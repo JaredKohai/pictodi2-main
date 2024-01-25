@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pictodi2/presentation/home/ninopage.dart';
 import 'forgotPassword.dart';
 import '../home/director_pages.dart';
 import '../home/profesor_page.dart';
 import '../home/psicologo_page.dart';
-import '../home/nino_page.dart';
 import '../home/padre_page.dart';
 import '../home/admin_page.dart';
 
@@ -97,6 +97,11 @@ class _LoginPageState extends State<LoginPage> {
         if (userDoc.exists) {
           String permiso = userDoc['permiso'];
           String nombre = userDoc['nombre'];
+          String diagnostico = userDoc['diagnostico'];
+          String fecha_nacimiento = userDoc['fecha_nacimiento'];
+          String grado = userDoc['grado'];
+          String grupo = userDoc['grupo'];
+          String gravedad = userDoc['gravedad'];
           String instituto = userDoc['instituto'] ?? '';
 
           // Muestra el nombre del usuario
@@ -116,7 +121,8 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => ProfesorPage(nombre: nombre)),
+                  builder: (context) =>
+                      ProfesorPage(nombre: nombre, instituto: instituto)),
             );
           } else if (permiso == 'padre') {
             Navigator.pushReplacement(
@@ -141,7 +147,15 @@ class _LoginPageState extends State<LoginPage> {
           } else if (permiso == 'nino') {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => NinoPage(nombre: nombre)),
+              MaterialPageRoute(
+                  builder: (context) => NinoInit(
+                      nombre: nombre,
+                      instituto: instituto,
+                      diagnostico: diagnostico,
+                      fecha_nacimiento: fecha_nacimiento,
+                      grado: grado,
+                      grupo: grupo,
+                      gravedad: gravedad)),
             );
           }
         }

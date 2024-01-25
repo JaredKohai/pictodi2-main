@@ -9,7 +9,7 @@ import '../home/generador.dart';
 class ProfesorPage extends StatelessWidget {
   final String nombre; // Agrega esta línea
 
-  ProfesorPage({Key? key, required this.nombre}) : super(key: key);
+  ProfesorPage({Key? key, required this.nombre, required String instituto}) : super(key: key);
   Future<void> _showGeneradorConfirmation(BuildContext context) async {
     return showDialog(
       context: context,

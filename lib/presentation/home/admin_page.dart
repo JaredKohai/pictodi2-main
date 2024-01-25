@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../añadir/ananir_director.dart'; // Asegúrate de tener la ruta correcta
+import '../ananir/ananir_director.dart'; // Asegúrate de tener la ruta correcta
 
 class AdminPage extends StatelessWidget {
   final String nombre;
