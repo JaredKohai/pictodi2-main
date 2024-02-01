@@ -74,7 +74,7 @@ class Crear {
       String nombre,
       String diagnostico,
       String fechaNacimiento,
-      int grado,
+      String grado,
       String grupos,
       String gravedad,
       [String? userId,

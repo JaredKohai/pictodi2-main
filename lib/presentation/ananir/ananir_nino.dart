@@ -38,7 +38,7 @@ class _AnadirNinoPageState extends State<AnadirNinoPage> {
         _nombreController.text,
         _diagnosticoController.text,
         _fechaNacimientoController.text,
-        int.parse(_gradoController.text),
+        _gradoController.text,
         _grupoController.text,
         _gravedadController.text,
         userId,
