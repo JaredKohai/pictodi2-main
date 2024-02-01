@@ -1,46 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'containeroptions.dart';
+import 'DashboardVocabulary.dart';
 
 void main() {
-  runApp(const PagePictograms());
+  runApp(const PageVocabulary());
 }
 
-class PagePictograms extends StatelessWidget {
-  const PagePictograms({super.key});
+class PageVocabulary extends StatelessWidget {
+  const PageVocabulary({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const GeneratorPage(),
+      home: const Vocabulary(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class GeneratorPage extends StatefulWidget {
-  const GeneratorPage({super.key});
+class Vocabulary extends StatefulWidget {
+  const Vocabulary({super.key});
 
   @override
-  State<GeneratorPage> createState() => _GeneratorPageState();
+  State<Vocabulary> createState() => _VocabularyState();
 }
 
-class _GeneratorPageState extends State<GeneratorPage> {
+class _VocabularyState extends State<Vocabulary> {
   TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       body: Column(
         children: <Widget>[
           const SizedBox(
-            height: 110,
+            height: 60,
           ),
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16),
@@ -50,21 +48,19 @@ class _GeneratorPageState extends State<GeneratorPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    
-                  const SizedBox(height: 4,),
+                    const SizedBox(
+                      height: 4,
+                    ),
                     Text(
-                      'Generador de Pictogramas',
+                      'Mi Vocabulario',
                       style: GoogleFonts.openSans(
-                        textStyle: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold
-                        )
-                      ),
+                          textStyle: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
-                
               ],
             ),
           ),
@@ -75,14 +71,15 @@ class _GeneratorPageState extends State<GeneratorPage> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Buscar...',
-                prefixIcon: Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                border: OutlineInputBorder(
+                border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
                 ),
+                prefixIcon: IconButton(
+                    onPressed: () {}, icon: const Icon(Icons.search)),
               ),
               onChanged: (value) {
                 // Puedes realizar acciones cuando el texto cambia
@@ -94,7 +91,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
           const SizedBox(
             height: 20,
           ),
-          GridDashboard()
+          VocabularyDashboard()
         ],
       ),
     );

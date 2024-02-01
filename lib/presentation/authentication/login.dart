@@ -23,6 +23,12 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  late String diagnostico;
+  late String fecha_nacimiento;
+  late String grado;
+  late String grupo;
+  late String gravedad;
+
   Future<void> _signIn(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -97,13 +103,15 @@ class _LoginPageState extends State<LoginPage> {
         if (userDoc.exists) {
           String permiso = userDoc['permiso'];
           String nombre = userDoc['nombre'];
-          String diagnostico = userDoc['diagnostico'];
-          String fecha_nacimiento = userDoc['fecha_nacimiento'];
-          String grado = userDoc['grado'];
-          String grupo = userDoc['grupo'];
-          String gravedad = userDoc['gravedad'];
           String instituto = userDoc['instituto'] ?? '';
 
+          if (permiso == 'nino') {
+            diagnostico = userDoc['diagnostico'];
+            fecha_nacimiento = userDoc['fecha_nacimiento'];
+            grado = userDoc['grado'];
+            grupo = userDoc['grupo'];
+            gravedad = userDoc['gravedad'];
+          }
           // Muestra el nombre del usuario
           print('¡Bienvenido, $nombre!');
 
@@ -148,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => NinoInit(
+                  builder: (context) => HomePageKid(
                       nombre: nombre,
                       instituto: instituto,
                       diagnostico: diagnostico,

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../authentication/login.dart';
-import '../home/generador.dart';
 
 class PadrePage extends StatelessWidget {
   final String nombre; // Agrega esta línea
@@ -31,7 +30,7 @@ class PadrePage extends StatelessWidget {
                 // Navegar a la página GeneradorPage
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => GeneradorPage()),
+                  MaterialPageRoute(builder: (context) => LoginPage()),
                 );
               },
               child: Text('Aceptar'),

@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../authentication/login.dart';
-import '../home/generador.dart';
 
 class PsicologoPage extends StatelessWidget {
   final String nombre;
   const PsicologoPage({Key? key, required this.nombre}) : super(key: key);
 
-Future<void> _showGeneradorConfirmation(BuildContext context) async {
+  Future<void> _showGeneradorConfirmation(BuildContext context) async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -30,7 +29,7 @@ Future<void> _showGeneradorConfirmation(BuildContext context) async {
                 // Navegar a la página GeneradorPage
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => GeneradorPage()),
+                  MaterialPageRoute(builder: (context) => LoginPage()),
                 );
               },
               child: Text('Aceptar'),
@@ -69,7 +68,6 @@ Future<void> _showGeneradorConfirmation(BuildContext context) async {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Bienvenido, $nombre'),
