@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -10,11 +11,14 @@ import 'package:stability_image_generation/stability_image_generation.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const GeneradorIA());
+  runApp(const GeneradorIA(
+    nombre: '',
+  ));
 }
 
 class GeneradorIA extends StatelessWidget {
-  const GeneradorIA({Key? key}) : super(key: key);
+  final String nombre;
+  const GeneradorIA({Key? key, required this.nombre}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +27,7 @@ class GeneradorIA extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: const Test(title: 'Generador de Pictogramas con IA'),
+      home: const Test(title: ''),
     );
   }
 }
@@ -40,7 +44,7 @@ class Test extends StatefulWidget {
 class _TestState extends State<Test> {
   final TextEditingController _queryController = TextEditingController();
   final StabilityAI _ai = StabilityAI();
-  final String apiKey = 'sk-4Ur70Hm5zWqp5qnnTDNlxQCFuCmIFR9y3rXNVfWFXMLcVV2m';
+  final String apiKey = 'sk-vC009fVjaz5JjQB3aAn3LNwHBolxbENhX2QzyugFUHmP3oTw';
   final ImageAIStyle imageAIStyle = ImageAIStyle.sovietCartoon;
   bool run = false;
 
@@ -51,6 +55,8 @@ class _TestState extends State<Test> {
 
   late BuildContext
       _modalContext; // Variable para almacenar el contexto del modal
+
+  bool _isSaving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +145,7 @@ class _TestState extends State<Test> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           String query = _queryController.text;
           if (query.isNotEmpty) {
@@ -152,8 +158,10 @@ class _TestState extends State<Test> {
             }
           }
         },
-        tooltip: 'Generate',
-        child: const Icon(Icons.gesture),
+        label: Text('Generar', style: TextStyle(fontSize: 16)),
+        icon: Icon(Icons.gesture),
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
       ),
     );
   }
@@ -180,90 +188,109 @@ class _TestState extends State<Test> {
         // Guarda el contexto del modal
         _modalContext = context;
 
-        return SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Título',
-                  ),
-                ),
-                TextField(
-                  controller: _descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Descripción',
-                  ),
-                ),
-                DropdownButtonFormField<String>(
-                  value: _category,
-                  onChanged: (value) {
-                    setState(() {
-                      _category = value!;
-                    });
-                  },
-                  items: <String>[
-                    'Comida',
-                    'Animales',
-                    'Higiene',
-                    'Deportes',
-                    'Reglas',
-                    'Escuela',
-                    'Arte',
-                    'Naturaleza',
-                  ].map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  decoration: InputDecoration(
-                    labelText: 'Categoría',
-                  ),
-                ),
-                TextField(
-                  controller: _authorController,
-                  decoration: InputDecoration(
-                    labelText: 'Autor',
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      Uint8List imageBytes =
-                          await _generateImage(_queryController.text);
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Título',
+                      ),
+                    ),
+                    TextField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Descripción',
+                      ),
+                    ),
+                    DropdownButtonFormField<String>(
+                      value: _category,
+                      onChanged: (value) {
+                        setState(() {
+                          _category = value!;
+                        });
+                      },
+                      items: <String>[
+                        'Comida',
+                        'Animales',
+                        'Higiene',
+                        'Deportes',
+                        'Reglas',
+                        'Escuela',
+                        'Arte',
+                        'Naturaleza',
+                      ].map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Categoría',
+                      ),
+                    ),
+                    TextField(
+                      controller: _authorController,
+                      decoration: InputDecoration(
+                        labelText: 'Autor',
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: _isSaving
+                          ? null
+                          : () async {
+                              try {
+                                setState(() {
+                                  _isSaving = true;
+                                });
 
-                      String title = _titleController.text;
-                      String description = _descriptionController.text;
-                      String category = _category;
-                      String author = _authorController.text;
+                                Uint8List imageBytes =
+                                    await _generateImage(_queryController.text);
 
-                      await _saveImage(
-                        imageBytes,
-                        title: title,
-                        description: description,
-                        category: category,
-                        author: author,
-                      );
+                                String title = _titleController.text;
+                                String description =
+                                    _descriptionController.text;
+                                String category = _category;
+                                String author = _authorController.text;
 
-                      Navigator.pop(context);
-                    } catch (e) {
-                      print('Error saving image and data: $e');
-                      ScaffoldMessenger.of(_modalContext).showSnackBar(
-                        SnackBar(
-                          content: Text('Error al guardar la imagen.'),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text('Guardar'),
+                                await _saveImage(
+                                  imageBytes,
+                                  title: title,
+                                  description: description,
+                                  category: category,
+                                  author: author,
+                                );
+
+                                Navigator.pop(context);
+                              } catch (e) {
+                                print('Error saving image and data: $e');
+                                ScaffoldMessenger.of(_modalContext)
+                                    .showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text('Error al guardar la imagen.'),
+                                  ),
+                                );
+                              } finally {
+                                setState(() {
+                                  _isSaving = false;
+                                });
+                              }
+                            },
+                      child: _isSaving
+                          ? CircularProgressIndicator()
+                          : Text('Guardar'),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

@@ -96,7 +96,7 @@ class _KidDrawerScreenState extends State<KidDrawerScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const PagePictograms(),
+                        builder: (context) => PagePictograms(nombre: widget.nombre,),
                       ),
                     );
                   },
@@ -277,7 +277,7 @@ class _HomePageKidState extends State<HomePageKid> {
         grupo: widget.grupo,
         gravedad: widget.gravedad,
       ),
-      const PagePictograms(),
+      PagePictograms(nombre: widget.nombre),
       const ActivityPage(),
       PerfilPage(
         nombre: widget.nombre,

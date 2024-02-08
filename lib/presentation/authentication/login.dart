@@ -11,6 +11,7 @@ import '../home/profesor_page.dart';
 import '../home/psicologo_page.dart';
 import '../home/padre_page.dart';
 import '../home/admin_page.dart';
+import '../home/director_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -123,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                      DirectorPage(nombre: nombre, instituto: instituto)),
+                      DirectPage(nombre: nombre, instituto: instituto)),
             );
           } else if (permiso == 'profesor') {
             Navigator.pushReplacement(

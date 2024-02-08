@@ -122,7 +122,7 @@ class _MainScreenState extends State<MainScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const PagePictograms()),
+                              builder: (context) => PagePictograms(nombre: widget.nombre,)),
                         );
                       },
                     ),

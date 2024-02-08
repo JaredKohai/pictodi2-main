@@ -4,11 +4,12 @@ import 'ContainerOptions.dart';
 import 'iagen.dart'; // Importa la página PagePictograms
 
 void main() {
-  runApp(const PagePictograms());
+  
+  runApp(const PagePictograms(nombre: '',));
 }
 
-class PagePictograms extends StatelessWidget {
-  const PagePictograms({Key? key}) : super(key: key);
+class PagePictograms extends StatelessWidget {final String nombre;
+  const PagePictograms({Key? key, required this.nombre}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +27,8 @@ class PagePictograms extends StatelessWidget {
 
 class GeneratorPage extends StatefulWidget {
   const GeneratorPage({Key? key}) : super(key: key);
+  
+  get nombre => null;
 
   @override
   State<GeneratorPage> createState() => _GeneratorPageState();
@@ -45,11 +48,11 @@ class _GeneratorPageState extends State<GeneratorPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      GeneradorIA(), // Redirige a PagePictograms
+                      GeneradorIA(nombre: widget.nombre,), // Redirige a PagePictograms
                 ),
               );
             },
-            icon: const Icon(Icons.info),
+            icon: const Icon(Icons.auto_fix_normal_sharp),
           ),
         ],
       ),
