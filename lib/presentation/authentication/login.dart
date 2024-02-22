@@ -12,9 +12,11 @@ import '../home/psicologo_page.dart';
 import '../home/padre_page.dart';
 import '../home/admin_page.dart';
 import '../home/director_page.dart';
+import '../home/maestro_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  final List asignaturas;
+  const LoginPage({Key? key, this.asignaturas = const []}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -29,6 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   late String grado;
   late String grupo;
   late String gravedad;
+  late List<String> asignaturas = [];
 
   Future<void> _signIn(BuildContext context) async {
     try {
@@ -113,6 +116,13 @@ class _LoginPageState extends State<LoginPage> {
             grupo = userDoc['grupo'];
             gravedad = userDoc['gravedad'];
           }
+
+          if (permiso == 'profesor') {
+            List<dynamic> asignaturasDynamic = userDoc['asignaturas'];
+            asignaturas = asignaturasDynamic.map((e) => e.toString()).toList();
+            grado = userDoc['grado'];
+            grupo = userDoc['grupo'];
+          }
           // Muestra el nombre del usuario
           print('¡Bienvenido, $nombre!');
 
@@ -130,8 +140,12 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      ProfesorPage(nombre: nombre, instituto: instituto)),
+                  builder: (context) => MaestroPages(
+                      nombre: nombre,
+                      instituto: instituto,
+                      asignaturas: asignaturas,
+                      grado: grado,
+                      grupo: grupo)),
             );
           } else if (permiso == 'padre') {
             Navigator.pushReplacement(

@@ -31,73 +31,77 @@ class _AnadirMaestroPageState extends State<AnadirMaestroPage> {
       appBar: AppBar(
         title: const Text('Añadir Maestro'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextFormField(
-              controller: _nombreController,
-              decoration: InputDecoration(
-                labelText: 'Nombre del Maestro',
-                errorText: _nombreError,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _nombreController,
+                decoration: InputDecoration(
+                  labelText: 'Nombre del Maestro',
+                  errorText: _nombreError,
+                ),
               ),
-            ),
-            TextFormField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Correo del Maestro',
-                errorText: _emailError,
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Correo del Maestro',
+                  errorText: _emailError,
+                ),
               ),
-            ),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Contraseña del Maestro',
-                errorText: _passwordError,
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña del Maestro',
+                  errorText: _passwordError,
+                ),
               ),
-            ),
-            TextFormField(
-              controller: _gradoController,maxLength: 1,
-              decoration: InputDecoration(
-                labelText: 'Grado del Maestro',
-                errorText: _gradoError,
+              TextFormField(
+                controller: _gradoController,
+                maxLength: 1,
+                decoration: InputDecoration(
+                  labelText: 'Grado del Maestro',
+                  errorText: _gradoError,
+                ),
               ),
-            ),
-            TextFormField(
-              controller: _grupoController,maxLength: 1,
-              decoration: InputDecoration(
-                labelText: 'Grupo del Maestro',
-                errorText: _grupoError,
+              TextFormField(
+                controller: _grupoController,
+                maxLength: 1,
+                decoration: InputDecoration(
+                  labelText: 'Grupo del Maestro',
+                  errorText: _grupoError,
+                ),
               ),
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Asignaturas',
-              ),
-              onTap: () async {
-                List<String>? result = await showDialog(
-                  context: context,
-                  builder: (context) => AsignaturasDialog(),
-                );
+              SizedBox(height: 20),
+              TextFormField(
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: 'Asignaturas',
+                ),
+                onTap: () async {
+                  List<String>? result = await showDialog(
+                    context: context,
+                    builder: (context) => AsignaturasDialog(),
+                  );
 
-                if (result != null) {
-                  setState(() {
-                    _asignaturasSeleccionadas = result;
-                  });
-                }
-              },
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _confirmarDatos();
-              },
-              child: const Text('Registrar Maestro'),
-            ),
-          ],
+                  if (result != null) {
+                    setState(() {
+                      _asignaturasSeleccionadas = result;
+                    });
+                  }
+                },
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _confirmarDatos();
+                },
+                child: const Text('Registrar Maestro'),
+              ),
+            ],
+          ),
         ),
       ),
     );

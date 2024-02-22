@@ -48,7 +48,7 @@ class _GeneratorPageState extends State<GeneratorPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      GeneradorIA(nombre: widget.nombre,), // Redirige a PagePictograms
+                      GeneradorIA(), // Redirige a PagePictograms
                 ),
               );
             },

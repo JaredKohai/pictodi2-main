@@ -113,6 +113,11 @@ flutter:
    - assets/profile_image.png
    - assets/menu.svg
    - assets/search.svg
+   - assets/teachers.png
+   - assets/math_icon.png
+   - assets/history_icon.jpg
+   - assets/math-class.png
+   - assets/history.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
