@@ -109,6 +109,7 @@ class _VocabularyState extends State<Vocabulary> {
   }
 }
 
+// ignore: must_be_immutable
 class VocabularyDashboard extends StatelessWidget {
   Items item1 = Items(title: "Comida", img: "assets/burger.png");
   Items item2 = Items(title: "Animales", img: "assets/pet.png");

@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pictodi2/presentation/authentication/login.dart';
 import 'classesDetail.dart';
 
 class ClassesTabContent extends StatefulWidget {
@@ -25,7 +27,7 @@ class _ClassesTabContentState extends State<ClassesTabContent> {
 
   final List<ClassData> classes = [
     ClassData('Matemáticas', Colors.blue, 'assets/math-class.png', []),
-    ClassData('Historia', Colors.green, 'assets/math-class.png', []),
+    ClassData('Sociocultura', Colors.green, 'assets/math-class.png', []),
     ClassData('Ciencias', Colors.orange, 'assets/math-class.png', []),
     ClassData('Español', Colors.red, 'assets/math-class.png', []),
   ];
@@ -41,18 +43,28 @@ class _ClassesTabContentState extends State<ClassesTabContent> {
   }
 
   void filterClasses() {
-    // Obtener las asignaturas registradas del profesor desde Firebase
-    List<String> asignaturasRegistradas = [
-      'Matemáticas',
-      'Historia',
-      'Ciencias',
-      'Español'
-    ]; // ¡Reemplaza esto con tus datos reales de Firebase!
+    print('Asignaturas del profesor ${widget.nombre}:');
+    print(widget.asignaturas);
 
-    // Filtrar las clases para incluir solo las asignaturas registradas
+    // Convertir los nombres de las asignaturas del profesor a minúsculas
+    List<String> asignaturasRegistradas = widget.asignaturas
+        .map((asignatura) => asignatura.toLowerCase())
+        .toList();
+
+    // Filtrar las clases para incluir solo las que contienen las asignaturas del profesor en su nombre
     filteredClasses = classes.where((classData) {
-      return asignaturasRegistradas.contains(classData.className);
+      // Convertir el nombre de la clase a minúsculas
+      String classNameLowerCase = classData.className.toLowerCase();
+
+      // Verificar si el nombre de la clase contiene alguna de las asignaturas del profesor
+      bool matchFound = asignaturasRegistradas
+          .any((asignatura) => classNameLowerCase.contains(asignatura));
+      print('Coincidencia encontrada para ${classData.className}: $matchFound');
+      return matchFound;
     }).toList();
+
+    print('Clases filtradas:');
+    print(filteredClasses);
   }
 
   @override
@@ -137,6 +149,13 @@ class _ClassesTabContentState extends State<ClassesTabContent> {
                         MaterialPageRoute(
                           builder: (context) => ClassDetailPage(
                             classData: filteredClasses[index],
+                            nombre: widget.nombre,
+                            instituto: widget.instituto,
+                            asignaturas: widget.asignaturas
+                                .map((e) => e.toString())
+                                .toList(), // Convertir a List<String>/ Convertir a List<String>
+                            grado: widget.grado,
+                            grupo: widget.grupo,
                           ),
                         ),
                       );
@@ -172,9 +191,16 @@ class _ClassesTabContentState extends State<ClassesTabContent> {
                 },
               ),
               ListTile(
-                title: const Text('Opcion 2'),
-                onTap: () {
-                  Navigator.pop(context);
+                title: const Text('Cerrar sesión'),
+                onTap: () async {
+                  await FirebaseAuth.instance.signOut(); // Cierra sesión
+                  Navigator.pop(context); // Cierra el menú desplegable
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            LoginPage()), // Reemplaza "LoginPage" con el nombre de tu pantalla de inicio de sesión
+                  );
                 },
               ),
             ],
@@ -278,3 +304,4 @@ class ClassData {
 
   ClassData(this.className, this.color, this.imagePath, this.activities);
 }
+

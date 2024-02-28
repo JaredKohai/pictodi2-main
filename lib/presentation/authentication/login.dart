@@ -6,8 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pictodi2/presentation/home/ninopage.dart';
 import 'forgotPassword.dart';
-import '../home/director_pages.dart';
-import '../home/profesor_page.dart';
 import '../home/psicologo_page.dart';
 import '../home/padre_page.dart';
 import '../home/admin_page.dart';
@@ -124,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
             grupo = userDoc['grupo'];
           }
           // Muestra el nombre del usuario
-          print('¡Bienvenido, $nombre!');
+          print('¡Bienvenido, $nombre!, asignaturas: $asignaturas');
 
           String loginname = nombre;
 

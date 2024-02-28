@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Enum para representar los tipos de actividad
 enum TipoActividad { Memorama, Unir, SeleccionaOpcion }
@@ -10,12 +11,14 @@ class CustomForm extends StatefulWidget {
 
 class _CustomFormState extends State<CustomForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  TextEditingController classNameController = TextEditingController();
+  TextEditingController titleNameController = TextEditingController();
   TextEditingController teacherNameController = TextEditingController();
   TextEditingController gradeController = TextEditingController();
   TextEditingController groupController = TextEditingController();
-  TipoActividad?
-      selectedActividad; // Variable para almacenar el tipo de actividad seleccionada
+  TextEditingController materiaController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
+  DateTime? selectedDate; // Nueva variable para almacenar la fecha seleccionada
+  TipoActividad? selectedActividad;
 
   @override
   Widget build(BuildContext context) {
@@ -27,70 +30,73 @@ class _CustomFormState extends State<CustomForm> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildDropdownField(
-                labelText: 'Tipo de Actividad',
-                value: selectedActividad,
-                onChanged: (value) {
-                  setState(() {
-                    selectedActividad = value as TipoActividad?;
-                  });
-                },
-                items: TipoActividad.values
-                    .map((tipo) => DropdownMenuItem(
-                          value: tipo,
-                          child: Text(_getActividadLabel(tipo)),
-                        ))
-                    .toList(),
-              ),
-              _buildTextField(
-                controller: classNameController,
-                labelText: 'Clase',
-                icon: Icons.school,
-              ),
-              _buildTextField(
-                controller: teacherNameController,
-                labelText: 'Profesor',
-                icon: Icons.person,
-              ),
-              _buildTextField(
-                controller: gradeController,
-                labelText: 'Grado',
-                icon: Icons.grade,
-              ),
-              _buildTextField(
-                controller: groupController,
-                labelText: 'Grupo',
-                icon: Icons.group,
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    // Realiza acciones con los datos del formulario
-                    print('Datos enviados:');
-                    print(
-                        'Tipo de Actividad: ${_getActividadLabel(selectedActividad)}');
-                    print('Clase: ${classNameController.text}');
-                    print('Profesor: ${teacherNameController.text}');
-                    print('Grado: ${gradeController.text}');
-                    print('Grupo: ${groupController.text}');
-                    // Redirige al formulario correspondiente según el tipo de actividad seleccionado
-                    _navigateToNextForm();
-                  }
-                },
-                child: Text('Enviar'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildDropdownField(
+                  labelText: 'Tipo de Actividad',
+                  value: selectedActividad,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedActividad = value as TipoActividad?;
+                    });
+                  },
+                  items: TipoActividad.values
+                      .map((tipo) => DropdownMenuItem(
+                            value: tipo,
+                            child: Text(_getActividadLabel(tipo)),
+                          ))
+                      .toList(),
+                ),
+                _buildTextField(
+                  controller: titleNameController,
+                  labelText: 'Titulo',
+                  icon: Icons.school,
+                ),
+                _buildTextField(
+                  controller: teacherNameController,
+                  labelText: 'Profesor',
+                  icon: Icons.person,
+                ),
+                _buildTextField(
+                  controller: gradeController,
+                  labelText: 'Grado',
+                  icon: Icons.grade,
+                ),
+                _buildTextField(
+                  controller: groupController,
+                  labelText: 'Grupo',
+                  icon: Icons.group,
+                ),
+                _buildTextField(
+                  controller: materiaController,
+                  labelText: 'Materia',
+                  icon: Icons.book,
+                ),
+                _buildTextField(
+                  controller: descriptionController,
+                  labelText: 'Descripción',
+                  icon: Icons.description,
+                ),
+                _buildDateField(), // Nuevo campo para seleccionar la fecha
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _saveDataToFirestore();
+                    }
+                  },
+                  child: Text('Enviar'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Método para construir un campo de texto
   Widget _buildTextField({
     required TextEditingController controller,
     required String labelText,
@@ -115,18 +121,17 @@ class _CustomFormState extends State<CustomForm> {
     );
   }
 
-  // Método para construir un campo de selección (Dropdown)
   Widget _buildDropdownField({
     required String labelText,
     required dynamic value,
-    required Function(dynamic?) onChanged,
+    required Function(dynamic) onChanged,
     required List<DropdownMenuItem<dynamic>> items,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: DropdownButtonFormField(
         value: value,
-        onChanged: onChanged as void Function(dynamic?)?,
+        onChanged: onChanged as void Function(dynamic)?,
         items: items,
         decoration: InputDecoration(
           labelText: labelText,
@@ -142,7 +147,6 @@ class _CustomFormState extends State<CustomForm> {
     );
   }
 
-  // Método para obtener la etiqueta de un tipo de actividad
   String _getActividadLabel(TipoActividad? tipo) {
     switch (tipo) {
       case TipoActividad.Memorama:
@@ -156,218 +160,83 @@ class _CustomFormState extends State<CustomForm> {
     }
   }
 
-  // Método para navegar al formulario correspondiente según el tipo de actividad seleccionado
-  void _navigateToNextForm() {
-    switch (selectedActividad) {
-      case TipoActividad.Memorama:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MemoramaForm()),
-        );
-        break;
-      case TipoActividad.Unir:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => UnirForm()),
-        );
-        break;
-      case TipoActividad.SeleccionaOpcion:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SeleccionaOpcionForm()),
-        );
-        break;
-      default:
-        break;
+  Widget _buildDateField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: InkWell(
+        onTap: () {
+          _selectDate(context);
+        },
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: 'Fecha de Vencimiento',
+            prefixIcon: Icon(Icons.calendar_today),
+            border: OutlineInputBorder(),
+          ),
+          child: Text(
+            selectedDate != null
+                ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                : 'Selecciona una fecha',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null && pickedDate != selectedDate) {
+      setState(() {
+        selectedDate = pickedDate;
+      });
     }
   }
-}
 
-// Formulario para la actividad Memorama
-// Formulario para la actividad Memorama
-// Formulario para la actividad Memorama
-class MemoramaForm extends StatefulWidget {
-  @override
-  _MemoramaFormState createState() => _MemoramaFormState();
-}
+  void _saveDataToFirestore() async {
+    String titulo = titleNameController.text;
+    String instrucciones = descriptionController.text;
+    String tipoActividad = _getActividadLabel(selectedActividad);
+    String evaluacion = gradeController.text;
+    String fecha = groupController.text;
+    String grado = gradeController.text;
+    String grupo = groupController.text;
+    String materia = materiaController.text;
 
-class _MemoramaFormState extends State<MemoramaForm> {
-  List<String> fichas = [];
-  TextEditingController preguntaController = TextEditingController();
-  TextEditingController tituloController = TextEditingController();
+    // Obtén la fecha de vencimiento del controlador
+    DateTime? fechaVencimiento = selectedDate;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Memorama Form'),
-      ),
-      body: ListView(
-        children: [
-          TextField(
-            controller: tituloController,
-            decoration: InputDecoration(labelText: 'Título'),
-          ),
-          TextField(
-            controller: preguntaController,
-            decoration: InputDecoration(labelText: 'Pregunta'),
-          ),
-          for (int i = 0; i < fichas.length; i++)
-            ListTile(
-              title: Text('Ficha ${i + 1}: ${fichas[i]}'),
-            ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                fichas.add('Ficha ${fichas.length + 1}');
-              });
-            },
-            child: Text('Añadir Ficha'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                if (fichas.isNotEmpty) {
-                  fichas.removeLast();
-                }
-              });
-            },
-            child: Text('Quitar Última Ficha'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+    // Registrar la actividad con la fecha de vencimiento
+    await FirebaseFirestore.instance.collection('actividades').add({
+      'titulo': titulo,
+      'instrucciones': instrucciones,
+      'tipo': tipoActividad,
+      'evaluacion': evaluacion,
+      'fecha': fecha,
+      'grado': grado,
+      'grupo': grupo,
+      'alumnos': [], // Aquí debes usar la lista de identificadores de alumnos
+      'finalizado': false,
+      'materia': materia,
+      'fecha_vencimiento': fechaVencimiento, // Añadir la fecha de vencimiento
+    });
 
-// Formulario para la actividad Unir
-class UnirForm extends StatefulWidget {
-  @override
-  _UnirFormState createState() => _UnirFormState();
-}
+    // Limpiar los campos después de guardar los datos
+    titleNameController.clear();
+    teacherNameController.clear();
+    gradeController.clear();
+    groupController.clear();
+    materiaController.clear();
+    descriptionController.clear();
+    selectedDate = null; // Limpiar la fecha seleccionada
 
-class _UnirFormState extends State<UnirForm> {
-  List<String> izquierda = [];
-  List<String> derecha = [];
-  TextEditingController preguntaController = TextEditingController();
-  TextEditingController tituloController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Unir Form'),
-      ),
-      body: ListView(
-        children: [
-          TextField(
-            controller: tituloController,
-            decoration: InputDecoration(labelText: 'Título'),
-          ),
-          TextField(
-            controller: preguntaController,
-            decoration: InputDecoration(labelText: 'Pregunta'),
-          ),
-          for (int i = 0; i < izquierda.length; i++)
-            ListTile(
-              title: Text('Izquierda ${i + 1}: ${izquierda[i]}'),
-            ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                izquierda.add('Izquierda ${izquierda.length + 1}');
-              });
-            },
-            child: Text('Añadir a la Izquierda'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                if (izquierda.isNotEmpty) {
-                  izquierda.removeLast();
-                }
-              });
-            },
-            child: Text('Quitar Última Izquierda'),
-          ),
-          for (int i = 0; i < derecha.length; i++)
-            ListTile(
-              title: Text('Derecha ${i + 1}: ${derecha[i]}'),
-            ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                derecha.add('Derecha ${derecha.length + 1}');
-              });
-            },
-            child: Text('Añadir a la Derecha'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                if (derecha.isNotEmpty) {
-                  derecha.removeLast();
-                }
-              });
-            },
-            child: Text('Quitar Última Derecha'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Formulario para la actividad Selecciona la opción correcta
-class SeleccionaOpcionForm extends StatefulWidget {
-  @override
-  _SeleccionaOpcionFormState createState() => _SeleccionaOpcionFormState();
-}
-
-class _SeleccionaOpcionFormState extends State<SeleccionaOpcionForm> {
-  List<String> opciones = [];
-  TextEditingController preguntaController = TextEditingController();
-  TextEditingController tituloController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Selecciona Opción Form'),
-      ),
-      body: ListView(
-        children: [
-          TextField(
-            controller: tituloController,
-            decoration: InputDecoration(labelText: 'Título'),
-          ),
-          TextField(
-            controller: preguntaController,
-            decoration: InputDecoration(labelText: 'Pregunta'),
-          ),
-          for (int i = 0; i < opciones.length; i++)
-            ListTile(
-              title: Text('Opción ${i + 1}: ${opciones[i]}'),
-            ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                opciones.add('Opción ${opciones.length + 1}');
-              });
-            },
-            child: Text('Añadir Opción'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                if (opciones.isNotEmpty) {
-                  opciones.removeLast();
-                }
-              });
-            },
-            child: Text('Quitar Última Opción'),
-          ),
-        ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Datos guardados correctamente en Firestore.'),
       ),
     );
   }

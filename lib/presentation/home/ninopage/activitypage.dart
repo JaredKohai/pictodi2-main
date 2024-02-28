@@ -60,7 +60,8 @@ class TaskList extends StatelessWidget {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => TaskDetailsScreen(task: tasks[index])),
+              MaterialPageRoute(
+                  builder: (context) => TaskDetailsScreen(task: tasks[index])),
             );
           },
           child: TaskCard(task: tasks[index], status: status),
@@ -113,7 +114,8 @@ class TaskCard extends StatelessWidget {
       margin: const EdgeInsets.all(8.0),
       elevation: 3.0,
       child: ListTile(
-        title: Text(task.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(task.title,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(task.dueDate),
         trailing: Icon(iconData, color: iconColor),
       ),
@@ -144,9 +146,12 @@ class TaskDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Título: ${task.title}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text('Título: ${task.title}',
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            Text('Fecha de vencimiento: ${task.dueDate}', style: const TextStyle(fontSize: 16)),
+            Text('Fecha de vencimiento: ${task.dueDate}',
+                style: const TextStyle(fontSize: 16)),
           ],
         ),
       ),

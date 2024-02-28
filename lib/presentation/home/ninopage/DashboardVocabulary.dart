@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// ignore: must_be_immutable
 class VocabularyDashboard extends StatelessWidget {
   Items item1 = Items(title: "Comida", img: "assets/burger.png");
   Items item2 = Items(title: "Animales", img: "assets/pet.png");

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:pictodi2/presentation/home/ninopage/DashboardVocabulary.dart';
 import 'package:pictodi2/presentation/home/maestropage/iagen.dart';
 import 'maestropage/activities.dart';
 import 'maestropage/class/classes.dart';
@@ -39,6 +38,7 @@ class _MaestroPagesState extends State<MaestroPages> {
     Colors.red,
   ];
 
+  // ignore: unused_field
   double _scaleFactor = 1.0;
 
   @override

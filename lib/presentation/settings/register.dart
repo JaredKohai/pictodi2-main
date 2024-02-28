@@ -154,14 +154,14 @@ class Crear {
           .collection('psicologos')
           .doc(userId)
           .set({
-            'id': userId,
-            'nombre': nombre,
-            'especialidad': especialidad,
-            'grado': grado, // Nuevo campo 'grado'
-            'grupo': grupo, // Nuevo campo 'grupo'
-            'permiso': 'psicologo',
-            'instituto': instituto,
-          });
+        'id': userId,
+        'nombre': nombre,
+        'especialidad': especialidad,
+        'grado': grado, // Nuevo campo 'grado'
+        'grupo': grupo, // Nuevo campo 'grupo'
+        'permiso': 'psicologo',
+        'instituto': instituto,
+      });
 
       print('Psicólogo registrado exitosamente.');
     } catch (e) {
@@ -169,6 +169,49 @@ class Crear {
     }
   }
 
+  Future<void> registerActividad({
+    required String titulo,
+    required String instrucciones,
+    required String tipoActividad,
+    required String evaluacion,
+    required String fecha,
+    required String grado,
+    required String grupo,
+    required String materia,
+  }) async {
+    try {
+      // Obtener la lista de alumnos con el mismo grado y grupo
+      QuerySnapshot alumnosQuery = await FirebaseFirestore.instance
+          .collection('niños')
+          .where('grado', isEqualTo: grado)
+          .where('grupo', isEqualTo: grupo)
+          .get();
+
+      // Crear una lista de identificadores de alumnos
+      List<String> alumnosIds = [];
+      alumnosQuery.docs.forEach((doc) {
+        alumnosIds.add(doc.id);
+      });
+
+      // Registrar la actividad
+      await FirebaseFirestore.instance.collection('actividades').add({
+        'titulo': titulo,
+        'instrucciones': instrucciones,
+        'tipo': tipoActividad,
+        'evaluacion': evaluacion,
+        'fecha': fecha,
+        'grado': grado,
+        'grupo': grupo,
+        'alumnos': alumnosIds, // Usar la lista de identificadores de alumnos
+        'finalizado': false,
+        'materia': materia,
+      });
+
+      print('Actividad registrada exitosamente.');
+    } catch (e) {
+      print('Error al registrar actividad: $e');
+    }
+  }
 
   Future<void> registerAdmin(
     String email,
