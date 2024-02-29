@@ -1,11 +1,24 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const ClasesPage());
-}
+import 'act_memorama.dart';
 
 class ClasesPage extends StatelessWidget {
-  const ClasesPage({super.key});
+  final String nombre;
+  final String instituto;
+  final String diagnostico;
+  final String grado;
+  final String grupo;
+  final String gravedad;
+
+  const ClasesPage({
+    Key? key,
+    required this.nombre,
+    required this.instituto,
+    required this.diagnostico,
+    required this.grado,
+    required this.grupo,
+    required this.gravedad,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +34,36 @@ class ClasesPage extends StatelessWidget {
           title: const Text('Mis Clases'),
           centerTitle: true,
         ),
-        body: const ClassList(),
+        body: ClassList(
+          nombre: nombre,
+          instituto: instituto,
+          diagnostico: diagnostico,
+          grado: grado,
+          grupo: grupo,
+          gravedad: gravedad,
+        ),
       ),
     );
   }
 }
 
 class ClassList extends StatelessWidget {
-  const ClassList({super.key});
+  final String nombre;
+  final String instituto;
+  final String diagnostico;
+  final String grado;
+  final String grupo;
+  final String gravedad;
+
+  const ClassList({
+    Key? key,
+    required this.nombre,
+    required this.instituto,
+    required this.diagnostico,
+    required this.grado,
+    required this.grupo,
+    required this.gravedad,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +83,46 @@ class ClassList extends StatelessWidget {
               int secondIndex = firstIndex + 1;
               return Row(
                 children: [
-                  Expanded(child: ClassCard(classInfo: classes[firstIndex])),
+                  Expanded(
+                    child: ClassCard(
+                      classInfo: classes[firstIndex],
+                      onTap: () {
+                        // Navegar a la página de detalles de la clase
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ClassDetailPage(
+                              className: classes[firstIndex].name,
+                              instituto: instituto,
+                              grado: grado,
+                              grupo: grupo,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                   const SizedBox(width: 8.0), // Espacio entre las tarjetas
                   if (secondIndex < classes.length)
-                    Expanded(child: ClassCard(classInfo: classes[secondIndex])),
+                    Expanded(
+                      child: ClassCard(
+                        classInfo: classes[secondIndex],
+                        onTap: () {
+                          // Navegar a la página de detalles de la clase
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ClassDetailPage(
+                                className: classes[secondIndex].name,
+                                instituto: instituto,
+                                grado: grado,
+                                grupo: grupo,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                 ],
               );
             },
@@ -64,29 +135,46 @@ class ClassList extends StatelessWidget {
   List<Class> getClasses() {
     return [
       Class(
-          name: 'Matemáticas',
-          teacher: 'Profesor Ejemplo 1',
-          image: 'assets/math_icon.png',
-          color: Colors.orange),
+        name: 'Matemáticas',
+        teacher: '',
+        image: 'assets/math_icon.png',
+        color: Colors.orange,
+      ),
       Class(
-          name: 'Historia',
-          teacher: 'Profesor Ejemplo 2',
-          image: 'assets/history_icon.jpg',
-          color: Colors.blue),
+        name: 'Sociocultura',
+        teacher: '',
+        image: 'assets/socio_class.png',
+        color: Colors.blue,
+      ),
       Class(
-          name: 'Ciencias',
-          teacher: 'Profesor Ejemplo 3',
-          image: 'assets/science_icon.png',
-          color: Colors.green),
-      // Puedes agregar más clases según sea necesario
+        name: 'Ciencias',
+        teacher: '',
+        image: 'assets/science_icon.png',
+        color: Colors.green,
+      ),
+      Class(
+        name: 'Español',
+        teacher: '',
+        image: 'assets/spanish-class.png',
+        color: Colors.red,
+      ),
     ];
+  }
+
+  List<String> getSubjectList() {
+    return ['Matemáticas', 'Sociocultura', 'Ciencias', 'Español'];
   }
 }
 
 class ClassCard extends StatelessWidget {
   final Class classInfo;
+  final VoidCallback? onTap;
 
-  const ClassCard({super.key, required this.classInfo});
+  const ClassCard({
+    Key? key,
+    required this.classInfo,
+    this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -96,31 +184,35 @@ class ClassCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.0),
       ),
       child: InkWell(
-        onTap: () {
-          // Lógica para navegar a los detalles de la clase
-          // Puedes implementar esto según tus necesidades
-        },
+        onTap: onTap,
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12.0),
-            color: classInfo.color,
+            color: classInfo.color, // Color fijo para las tarjetas de clase
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
                 radius: 30.0,
-                backgroundImage: AssetImage(classInfo.image),
+                backgroundImage: AssetImage(
+                    classInfo.image), // Imagen fija para las tarjetas de clase
               ),
               const SizedBox(height: 8),
-              Text(classInfo.name,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(
+                classInfo.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text('Profesor: ${classInfo.teacher}',
-                  style: const TextStyle(color: Colors.white)),
+              Text(
+                'Profesor: Pendiente',
+                style: const TextStyle(color: Colors.white),
+              ),
             ],
           ),
         ),
@@ -135,15 +227,16 @@ class Class {
   final String image;
   final Color color;
 
-  Class(
-      {required this.name,
-      required this.teacher,
-      required this.image,
-      required this.color});
+  Class({
+    required this.name,
+    required this.teacher,
+    required this.image,
+    required this.color,
+  });
 }
 
 class SearchBar extends StatelessWidget {
-  const SearchBar({super.key});
+  const SearchBar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -156,9 +249,121 @@ class SearchBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(12.0),
           ),
           prefixIcon: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.search)),
+            onPressed: () {},
+            icon: const Icon(Icons.search),
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class ClassDetailPage extends StatelessWidget {
+  final String className;
+  final String instituto;
+  final String grado;
+  final String grupo;
+
+  const ClassDetailPage({
+    Key? key,
+    required this.className,
+    required this.instituto,
+    required this.grado,
+    required this.grupo,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    print('Buscando actividades para la clase $className...');
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(className),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('actividades')
+            .where('grado', isEqualTo: grado)
+            .where('grupo', isEqualTo: grupo)
+            .where('instituto', isEqualTo: instituto)
+            .where('materia', isEqualTo: className) // Filtrar por asignatura
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          List<DocumentSnapshot> activities = snapshot.data!.docs;
+
+          if (activities.isEmpty) {
+            return Center(child: Text('No hay actividades disponibles.'));
+          }
+
+          return ListView.builder(
+            itemCount: activities.length,
+            itemBuilder: (context, index) {
+              var activityData =
+                  activities[index].data() as Map<String, dynamic>;
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GestureDetector(
+                  onTap: () {
+                    _showConfirmationDialog(context, activityData);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.0),
+                      color: Colors
+                          .blue, // Color fijo para las tarjetas de actividad
+                    ),
+                    child: ListTile(
+                      title: Text(activityData['titulo'],
+                          style: TextStyle(color: Colors.white)),
+                      subtitle: Text(activityData['instrucciones'],
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _showConfirmationDialog(
+      BuildContext context, Map<String, dynamic> activityData) {
+    List<String> imagenesSeleccionadas =
+        List<String>.from(activityData['imagenes_seleccionadas']);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('¿Quieres empezar la actividad?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ActMemoramaPage(
+                      imagenesSeleccionadas: imagenesSeleccionadas),
+                ),
+              );
+            },
+            child: Text('Empezar'),
+          ),
+        ],
       ),
     );
   }

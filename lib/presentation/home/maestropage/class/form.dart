@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'activities/memorama.dart'; // Importar la página Memorama
+import 'activities/unir.dart'; // Importar la página Unir
+import 'activities/seleccionar.dart'; // Importar la página Seleccionar
 
 // Enum para representar los tipos de actividad
 enum TipoActividad { Memorama, Unir, SeleccionaOpcion }
 
 class CustomForm extends StatefulWidget {
+  final String nombre;
+  final String instituto;
+  final String grado;
+  final String grupo;
+  final List<String> asignaturas;
+  final String nombreMateria; // Nuevo parámetro para el nombre de la materia
+
+  CustomForm({
+    required this.nombre,
+    required this.instituto,
+    required this.grado,
+    required this.grupo,
+    required this.asignaturas,
+    required this.nombreMateria, // Agregar el parámetro al constructor
+  });
+
   @override
   _CustomFormState createState() => _CustomFormState();
 }
@@ -12,13 +31,10 @@ class CustomForm extends StatefulWidget {
 class _CustomFormState extends State<CustomForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController titleNameController = TextEditingController();
-  TextEditingController teacherNameController = TextEditingController();
-  TextEditingController gradeController = TextEditingController();
-  TextEditingController groupController = TextEditingController();
-  TextEditingController materiaController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   DateTime? selectedDate; // Nueva variable para almacenar la fecha seleccionada
   TipoActividad? selectedActividad;
+  List<String> selectedImages = []; // Lista para almacenar las imágenes seleccionadas
 
   @override
   Widget build(BuildContext context) {
@@ -28,70 +44,74 @@ class _CustomFormState extends State<CustomForm> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildDropdownField(
-                  labelText: 'Tipo de Actividad',
-                  value: selectedActividad,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedActividad = value as TipoActividad?;
-                    });
-                  },
-                  items: TipoActividad.values
-                      .map((tipo) => DropdownMenuItem(
-                            value: tipo,
-                            child: Text(_getActividadLabel(tipo)),
-                          ))
-                      .toList(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Profesor: ${widget.nombre}'),
+            Text('Instituto: ${widget.instituto}'),
+            Text('Grado: ${widget.grado}'),
+            Text('Grupo: ${widget.grupo}'),
+            Text(
+                'Materia: ${widget.nombreMateria}'), // Mostrar el nombre de la materia
+            SizedBox(height: 20),
+            Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildDropdownField(
+                      labelText: 'Tipo de Actividad',
+                      value: selectedActividad,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedActividad = value as TipoActividad?;
+                        });
+                      },
+                      items: TipoActividad.values
+                          .map((tipo) => DropdownMenuItem(
+                                value: tipo,
+                                child: Text(_getActividadLabel(tipo)),
+                              ))
+                          .toList(),
+                    ),
+                    _buildTextField(
+                      controller: titleNameController,
+                      labelText: 'Titulo',
+                      icon: Icons.school,
+                    ),
+                    _buildTextField(
+                      controller: descriptionController,
+                      labelText: 'Descripción',
+                      icon: Icons.description,
+                    ),
+                    _buildDateField(), // Nuevo campo para seleccionar la fecha
+                    SizedBox(height: 20),
+                    Visibility( // Agregar Visibility
+                      visible: selectedActividad == TipoActividad.Memorama,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _navigateToSeleccionarPictogramas(context);
+                          }
+                        },
+                        child: Text('Agregar los pictogramas'), // Cambiar el texto del botón
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _saveDataToFirestore();
+                        }
+                      },
+                      child: Text('Enviar'),
+                    ),
+                  ],
                 ),
-                _buildTextField(
-                  controller: titleNameController,
-                  labelText: 'Titulo',
-                  icon: Icons.school,
-                ),
-                _buildTextField(
-                  controller: teacherNameController,
-                  labelText: 'Profesor',
-                  icon: Icons.person,
-                ),
-                _buildTextField(
-                  controller: gradeController,
-                  labelText: 'Grado',
-                  icon: Icons.grade,
-                ),
-                _buildTextField(
-                  controller: groupController,
-                  labelText: 'Grupo',
-                  icon: Icons.group,
-                ),
-                _buildTextField(
-                  controller: materiaController,
-                  labelText: 'Materia',
-                  icon: Icons.book,
-                ),
-                _buildTextField(
-                  controller: descriptionController,
-                  labelText: 'Descripción',
-                  icon: Icons.description,
-                ),
-                _buildDateField(), // Nuevo campo para seleccionar la fecha
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _saveDataToFirestore();
-                    }
-                  },
-                  child: Text('Enviar'),
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -197,21 +217,48 @@ class _CustomFormState extends State<CustomForm> {
     }
   }
 
+  void _navigateToSeleccionarPictogramas(BuildContext context) async {
+    // Navegar a la página de selección de pictogramas
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MemoramaPage(
+          nombre: widget.nombre,
+          instituto: widget.instituto,
+          grado: widget.grado,
+          grupo: widget.grupo,
+          nombreMateria: widget.nombreMateria,
+          asignaturas: widget.asignaturas,
+        ),
+      ),
+    );
+
+    // Verificar si se seleccionaron imágenes
+    if (result != null && result is List<String>) {
+      setState(() {
+        selectedImages = result;
+      });
+    }
+  }
+
   void _saveDataToFirestore() async {
     String titulo = titleNameController.text;
     String instrucciones = descriptionController.text;
     String tipoActividad = _getActividadLabel(selectedActividad);
-    String evaluacion = gradeController.text;
-    String fecha = groupController.text;
-    String grado = gradeController.text;
-    String grupo = groupController.text;
-    String materia = materiaController.text;
+    String evaluacion = widget.grado;
+    String fecha = widget.grupo;
+    String grado = widget.grado;
+    String grupo = widget.grupo;
+    String materia =
+        widget.nombreMateria; // Utilizar el nombre de la materia del widget
+    String instituto = widget.instituto; // Obtener el valor del instituto
 
     // Obtén la fecha de vencimiento del controlador
     DateTime? fechaVencimiento = selectedDate;
 
-    // Registrar la actividad con la fecha de vencimiento
-    await FirebaseFirestore.instance.collection('actividades').add({
+    // Guardar las imágenes seleccionadas y el ID de la actividad de memorama
+    DocumentReference actividadRef =
+        await FirebaseFirestore.instance.collection('actividades').add({
       'titulo': titulo,
       'instrucciones': instrucciones,
       'tipo': tipoActividad,
@@ -222,17 +269,16 @@ class _CustomFormState extends State<CustomForm> {
       'alumnos': [], // Aquí debes usar la lista de identificadores de alumnos
       'finalizado': false,
       'materia': materia,
+      'instituto': instituto, // Agregar el valor del Instituto
       'fecha_vencimiento': fechaVencimiento, // Añadir la fecha de vencimiento
+      'imagenes_seleccionadas': selectedImages, // Guardar las imágenes seleccionadas
     });
 
     // Limpiar los campos después de guardar los datos
     titleNameController.clear();
-    teacherNameController.clear();
-    gradeController.clear();
-    groupController.clear();
-    materiaController.clear();
     descriptionController.clear();
     selectedDate = null; // Limpiar la fecha seleccionada
+    selectedImages.clear(); // Limpiar la lista de imágenes seleccionadas
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -242,8 +288,36 @@ class _CustomFormState extends State<CustomForm> {
   }
 }
 
+class SeleccionarPictogramasPage extends StatefulWidget {
+  @override
+  _SeleccionarPictogramasPageState createState() => _SeleccionarPictogramasPageState();
+}
+
+class _SeleccionarPictogramasPageState extends State<SeleccionarPictogramasPage> {
+  // Aquí puedes implementar la lógica para seleccionar los pictogramas
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Seleccionar Pictogramas'),
+      ),
+      body: Center(
+        child: Text('Página de selección de pictogramas'),
+      ),
+    );
+  }
+}
+
 void main() {
   runApp(MaterialApp(
-    home: CustomForm(),
+    home: CustomForm(
+      nombre: 'Nombre del profesor',
+      instituto: 'Nombre del instituto',
+      grado: 'Grado',
+      grupo: 'Grupo',
+      asignaturas: ['Asignatura 1', 'Asignatura 2'],
+      nombreMateria: 'Nombre de la clase', // Pasar el nombre de la materia
+    ),
   ));
 }

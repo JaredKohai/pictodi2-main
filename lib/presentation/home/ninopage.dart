@@ -128,7 +128,12 @@ class _KidDrawerScreenState extends State<KidDrawerScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ClasesPage(),
+                        builder: (context) => ClasesPage(                          nombre: widget.nombre,
+                          instituto: widget.instituto,
+                          diagnostico: widget.diagnostico,
+                          grado: widget.grado,
+                          grupo: widget.grupo,
+                          gravedad: widget.gravedad,),
                       ),
                     );
                   },

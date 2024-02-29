@@ -12,6 +12,15 @@ class Crear {
     required String instituto,
   }) async {
     try {
+      // Verificar si el correo electrónico ya está en uso
+      final existingUser =
+          await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+      if (existingUser.isNotEmpty) {
+        print('El correo electrónico ya está en uso.');
+        return; // Salir del método si el correo ya está en uso
+      }
+
+      // Registrar al nuevo profesor si el correo es único
       UserCredential userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
@@ -29,8 +38,8 @@ class Crear {
         'grado': grado,
         'grupo': grupo,
         'asignaturas': asignaturas,
-        'permiso': 'profesor',
-        'instituto': instituto, // Agregar el campo 'instituto'
+        'permiso': 'profesor', // Agregar el campo 'permiso'
+        'instituto': instituto,
       });
 
       print('Profesor registrado exitosamente.');
@@ -178,13 +187,16 @@ class Crear {
     required String grado,
     required String grupo,
     required String materia,
+    required String instituto,
+    required List<String> selectedImages,
   }) async {
     try {
-      // Obtener la lista de alumnos con el mismo grado y grupo
+      // Obtener la lista de alumnos con el mismo grado, grupo e instituto
       QuerySnapshot alumnosQuery = await FirebaseFirestore.instance
           .collection('niños')
           .where('grado', isEqualTo: grado)
           .where('grupo', isEqualTo: grupo)
+          .where('instituto', isEqualTo: instituto)
           .get();
 
       // Crear una lista de identificadores de alumnos
@@ -194,7 +206,8 @@ class Crear {
       });
 
       // Registrar la actividad
-      await FirebaseFirestore.instance.collection('actividades').add({
+      DocumentReference actividadDocRef =
+          await FirebaseFirestore.instance.collection('actividades').add({
         'titulo': titulo,
         'instrucciones': instrucciones,
         'tipo': tipoActividad,
@@ -202,9 +215,32 @@ class Crear {
         'fecha': fecha,
         'grado': grado,
         'grupo': grupo,
-        'alumnos': alumnosIds, // Usar la lista de identificadores de alumnos
+        'alumnos': alumnosIds,
         'finalizado': false,
         'materia': materia,
+        'instituto': instituto,
+      });
+
+      // Obtener el ID de la nueva actividad de memorama
+      String actividadId = actividadDocRef.id;
+
+      // Guardar las imágenes seleccionadas y el ID de la actividad de memorama
+      await FirebaseFirestore.instance
+          .collection('actividades_memorama')
+          .doc(actividadId)
+          .set({
+        'titulo': titulo,
+        'instrucciones': instrucciones,
+        'tipo': tipoActividad,
+        'evaluacion': evaluacion,
+        'fecha': fecha,
+        'grado': grado,
+        'grupo': grupo,
+        'alumnos': alumnosIds,
+        'finalizado': false,
+        'materia': materia,
+        'instituto': instituto,
+        'imagenes_seleccionadas': selectedImages, // Usar selectedImages
       });
 
       print('Actividad registrada exitosamente.');

@@ -47,7 +47,6 @@ dependencies:
   intl: ^0.19.0
   flutter_bloc: ^8.1.3
   shared_preferences: ^2.2.2
-  bloc: ^8.1.2
   equatable: ^2.0.5
   autocomplete_textfield: ^2.0.1
   bubble_tab_indicator: ^0.1.4
@@ -55,6 +54,7 @@ dependencies:
   google_nav_bar: ^5.0.6
   image: ^3.0.1
   image_gallery_saver: ^2.0.3
+  flip_card: ^0.7.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
@@ -100,6 +100,7 @@ flutter:
    - assets/history_icon.jpg
    - assets/burger.png
    - assets/pet.png
+   - assets/socio_icon.jpg
    - assets/hygiene-routine.png
    - assets/training.png
    - assets/rule.png
@@ -116,8 +117,11 @@ flutter:
    - assets/teachers.png
    - assets/math_icon.png
    - assets/history_icon.jpg
+   - assets/socio_class.png
    - assets/math-class.png
+   - assets/spanish-class.png
    - assets/history.png
+   
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

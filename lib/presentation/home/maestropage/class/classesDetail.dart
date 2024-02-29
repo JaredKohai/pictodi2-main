@@ -1,7 +1,13 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'form.dart';
-import 'classes.dart';
+import 'form.dart'
+    // ignore: library_prefixes
+    as FormPage; // Agregar un prefijo para evitar conflictos de nombres
+import 'classes.dart'
+    // ignore: library_prefixes
+    as ClassModels; // Agregar un prefijo para evitar conflictos de nombres
 
 class Activity {
   final String name;
@@ -15,9 +21,11 @@ class ClassDetailPage extends StatelessWidget {
   final List<String> asignaturas;
   final String grado;
   final String grupo;
-  final ClassData classData;
+  final ClassModels.ClassData
+      classData; // Utilizar el prefijo para evitar conflictos de nombres
 
-  ClassDetailPage({
+  const ClassDetailPage({
+    super.key,
     required this.classData,
     required this.nombre,
     required this.instituto,
@@ -41,15 +49,24 @@ class ClassDetailPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CustomForm(),
+                      builder: (context) => FormPage.CustomForm(
+                        nombre: nombre, // Pasar 'nombre' al CustomForm
+                        instituto: instituto, // Pasar 'instituto' al CustomForm
+                        asignaturas:
+                            asignaturas, // Pasar 'asignaturas' al CustomForm
+                        grado: grado, // Pasar 'grado' al CustomForm
+                        grupo: grupo, // Pasar 'grupo' al CustomForm
+                        nombreMateria: classData
+                            .className, // Pasar el nombre de la materia
+                      ),
                     ),
                   );
                 },
-                icon: Icon(Icons.add),
+                icon: const Icon(Icons.add),
               ),
             ),
           ],
-          bottom: TabBar(
+          bottom: const TabBar(
             tabs: [
               Tab(text: 'Actividades'),
               Tab(text: 'Alumnos'),
@@ -64,11 +81,12 @@ class ClassDetailPage extends StatelessWidget {
                   .collection('actividades')
                   .where('grado', isEqualTo: grado)
                   .where('grupo', isEqualTo: grupo)
-                  .where('materia', whereIn: asignaturas)
+                  .where('materia',
+                      isEqualTo: classData.className) // Filtrar por materia
                   .get(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 if (snapshot.hasError) {
@@ -99,15 +117,15 @@ class ClassDetailPage extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Actividad: ${actividad['titulo']}',
-                                    style: TextStyle(color: Colors.white),
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                   Text(
                                     'Instrucciones: ${actividad['instrucciones']}',
-                                    style: TextStyle(color: Colors.white),
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                   Text(
                                     'Fecha de vencimiento: ${actividad['fecha']}',
-                                    style: TextStyle(color: Colors.white),
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                 ],
                               ),
@@ -120,7 +138,7 @@ class ClassDetailPage extends StatelessWidget {
                 );
               },
             ),
-            // Contenido de la pestaña 'Alumnos'
+
             FutureBuilder<QuerySnapshot>(
               future: FirebaseFirestore.instance
                   .collection('niños')
@@ -130,11 +148,11 @@ class ClassDetailPage extends StatelessWidget {
                   .get(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(child: Text('Problemilla: ${snapshot.error}'));
                 }
 
                 final alumnos = snapshot.data!.docs;
@@ -162,11 +180,11 @@ class ClassDetailPage extends StatelessWidget {
 void main() {
   runApp(MaterialApp(
     home: ClassDetailPage(
-      classData: ClassData(
+      classData: ClassModels.ClassData(
           'Nombre de la clase', Colors.blue, 'assets/math-class.png', []),
       nombre: 'Nombre del profesor',
       instituto: 'Nombre del instituto',
-      asignaturas: ['Asignatura 1', 'Asignatura 2'],
+      asignaturas: const ['Asignatura 1', 'Asignatura 2'],
       grado: 'Grado',
       grupo: 'Grupo',
     ),

@@ -304,4 +304,3 @@ class ClassData {
 
   ClassData(this.className, this.color, this.imagePath, this.activities);
 }
-
