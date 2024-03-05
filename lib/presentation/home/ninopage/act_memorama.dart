@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flip_card/flip_card.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ActMemoramaPage extends StatefulWidget {
   final List<String> imagenesSeleccionadas;
+  final String nombre;
 
-  const ActMemoramaPage({Key? key, required this.imagenesSeleccionadas})
+  const ActMemoramaPage(
+      {Key? key, required this.imagenesSeleccionadas, required this.nombre})
       : super(key: key);
 
   @override
@@ -14,9 +16,8 @@ class ActMemoramaPage extends StatefulWidget {
 class _ActMemoramaPageState extends State<ActMemoramaPage> {
   late List<String> cartas;
   late List<bool> cartasVolteadas;
-  late List<int> cartasVolteadasIndices;
-  late bool primeraSeleccion;
-  late int primeraSeleccionIndex;
+  int? primeraSeleccionIndex;
+  int? segundaSeleccionIndex;
 
   @override
   void initState() {
@@ -29,12 +30,10 @@ class _ActMemoramaPageState extends State<ActMemoramaPage> {
     cartas.addAll(widget.imagenesSeleccionadas);
     cartas.shuffle();
     cartasVolteadas = List<bool>.filled(cartas.length, false);
-    cartasVolteadasIndices = [];
-    primeraSeleccion = true;
-    primeraSeleccionIndex = -1;
+    primeraSeleccionIndex = null;
+    segundaSeleccionIndex = null;
   }
 
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -45,44 +44,35 @@ class _ActMemoramaPageState extends State<ActMemoramaPage> {
           shrinkWrap: true,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio:
-                2 / 3, // Aspect ratio to maintain correct card size
+            childAspectRatio: 2 / 3,
           ),
           itemCount: cartas.length,
           itemBuilder: (context, index) {
-            return FlipCard(
-              flipOnTouch: !cartasVolteadas[index],
-              onFlip: () {
+            return GestureDetector(
+              onTap: () {
                 if (!cartasVolteadas[index]) {
-                  setState(() {
-                    if (primeraSeleccion) {
-                      primeraSeleccion = false;
-                      primeraSeleccionIndex = index;
-                    } else {
-                      if (cartas[primeraSeleccionIndex] != cartas[index]) {
-                        Future.delayed(const Duration(seconds: 1), () {
-                          setState(() {
-                            cartasVolteadas[primeraSeleccionIndex] = false;
-                            cartasVolteadas[index] = false;
-                          });
-                        });
-                      }
-                      primeraSeleccion = true;
-                    }
-                    cartasVolteadasIndices.add(index);
-                    if (cartasVolteadasIndices.length == cartas.length) {
-                      // Activity completed
-                      completarActividad(context);
-                    }
-                  });
+                  voltearCarta(index);
                 }
               },
-              front: _buildCardContainer(
-                  Icon(Icons.question_answer, color: Colors.white)),
-              back: _buildCardContainer(Image.network(
-                cartas[index],
-                fit: BoxFit.cover,
-              )),
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                margin: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: cartasVolteadas[index] ? Colors.grey : Colors.white,
+                ),
+                child: Center(
+                  child: cartasVolteadas[index]
+                      ? Image.network(
+                          cartas[index],
+                          fit: BoxFit.cover,
+                        )
+                      : Image.network(
+                          "https://cdn.pixabay.com/photo/2012/05/07/18/52/card-game-48980_1280.png",
+                          fit: BoxFit.cover,
+                        ),
+                ),
+              ),
             );
           },
         ),
@@ -90,34 +80,74 @@ class _ActMemoramaPageState extends State<ActMemoramaPage> {
     );
   }
 
-  Widget _buildCardContainer(Widget child) {
-    return Container(
-      margin: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Center(
-        child: child,
-      ),
-    );
+  void voltearCarta(int index) {
+    setState(() {
+      if (primeraSeleccionIndex == null) {
+        primeraSeleccionIndex = index;
+        cartasVolteadas[index] = true;
+      } else if (segundaSeleccionIndex == null &&
+          index != primeraSeleccionIndex) {
+        segundaSeleccionIndex = index;
+        cartasVolteadas[index] = true;
+        if (cartas[primeraSeleccionIndex!] == cartas[segundaSeleccionIndex!]) {
+          primeraSeleccionIndex = null;
+          segundaSeleccionIndex = null;
+          if (cartasVolteadas.every((element) => element)) {
+            mostrarDialogo();
+            // Buscar la actividad correspondiente en la colección 'actividades'
+            buscarActividad();
+          }
+        } else {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            setState(() {
+              cartasVolteadas[primeraSeleccionIndex!] = false;
+              cartasVolteadas[segundaSeleccionIndex!] = false;
+              primeraSeleccionIndex = null;
+              segundaSeleccionIndex = null;
+            });
+          });
+        }
+      }
+    });
   }
 
-  void completarActividad(BuildContext context) {
+  void mostrarDialogo() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Actividad completada'),
+        title: Text('¡Felicidades!'),
+        content: Text('¡Has encontrado todos los pares!'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Return to previous page (ClasesPage)
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
             },
             child: Text('Aceptar'),
           ),
         ],
       ),
     );
+  }
+
+  void buscarActividad() {
+    FirebaseFirestore.instance
+        .collection('actividades')
+        .where('imagenes_seleccionadas',
+            isEqualTo: widget.imagenesSeleccionadas)
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        // Obtener el ID de la actividad
+        String actividadId = doc.id;
+        // Agregar el nombre del niño a la matriz 'alumnos' en la colección de actividades
+        FirebaseFirestore.instance
+            .collection('actividades')
+            .doc(actividadId)
+            .update({
+          'alumnos': FieldValue.arrayUnion([widget.nombre]),
+        });
+      });
+    });
   }
 }

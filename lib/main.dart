@@ -10,7 +10,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Crear registros = Crear();
+  //Crear registros = Crear();
 
   // Llamadas a funciones de registro (puedes descomentar y usar según sea necesario)
   //await registerProfesor("profesor@gmail.com", "123456", "Profesor Ejemplo", "1A", ["Matemáticas", "Ciencias"]);

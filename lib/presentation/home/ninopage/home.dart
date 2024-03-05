@@ -136,7 +136,7 @@ class _MainScreenState extends State<MainScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const ActivityPage()),
+                              builder: (context) => ActivityPage( nombre: widget.nombre, instituto: widget.instituto,  grado: widget.grado, grupo: widget.grupo,)),
                         );
                       },
                     ),

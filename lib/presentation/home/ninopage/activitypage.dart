@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const ActivityPage());
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ActivityPage extends StatelessWidget {
-  const ActivityPage({super.key});
+  final String nombre;
+  final String instituto;
+  final String grado;
+  final String grupo;
+
+  const ActivityPage({
+    Key? key,
+    required this.nombre,
+    required this.instituto,
+    required this.grado,
+    required this.grupo,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +37,29 @@ class ActivityPage extends StatelessWidget {
               ],
             ),
           ),
-          body: const TabBarView(
+          body: TabBarView(
             children: [
-              TaskList(status: TaskStatus.pending),
-              TaskList(status: TaskStatus.completed),
-              TaskList(status: TaskStatus.overdue),
+              TaskList(
+                status: TaskStatus.pending,
+                nombre: nombre,
+                instituto: instituto,
+                grado: grado,
+                grupo: grupo,
+              ),
+              TaskList(
+                status: TaskStatus.completed,
+                nombre: nombre,
+                instituto: instituto,
+                grado: grado,
+                grupo: grupo,
+              ),
+              TaskList(
+                status: TaskStatus.overdue,
+                nombre: nombre,
+                instituto: instituto,
+                grado: grado,
+                grupo: grupo,
+              ),
             ],
           ),
         ),
@@ -42,60 +68,111 @@ class ActivityPage extends StatelessWidget {
   }
 }
 
-enum TaskStatus { completed, pending, overdue }
-
 class TaskList extends StatelessWidget {
   final TaskStatus status;
+  final String nombre;
+  final String instituto;
+  final String grado;
+  final String grupo;
 
-  const TaskList({super.key, required this.status});
+  const TaskList({
+    Key? key,
+    required this.status,
+    required this.nombre,
+    required this.instituto,
+    required this.grado,
+    required this.grupo,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    List<Task> tasks = getTasks(status);
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('actividades')
+          .where('grado', isEqualTo: grado)
+          .where('grupo', isEqualTo: grupo)
+          .where('instituto', isEqualTo: instituto)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
 
-    return ListView.builder(
-      itemCount: tasks.length,
-      itemBuilder: (context, index) {
-        return InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => TaskDetailsScreen(task: tasks[index])),
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        final List<DocumentSnapshot> activities = snapshot.data!.docs;
+
+        List<DocumentSnapshot> filteredActivities;
+        if (status == TaskStatus.pending) {
+          // Filtrar actividades pendientes
+          filteredActivities = activities.where((activity) {
+            final Timestamp dueDate = activity['fecha_vencimiento'];
+            final now = Timestamp.now();
+            return !(activity['alumnos'] as List).contains(nombre) &&
+                now.compareTo(dueDate) < 0;
+          }).toList();
+        } else if (status == TaskStatus.completed) {
+          // Filtrar actividades completadas
+          filteredActivities = activities
+              .where(
+                  (activity) => (activity['alumnos'] as List).contains(nombre))
+              .toList();
+        } else {
+          // Filtrar actividades vencidas
+          filteredActivities = activities.where((activity) {
+            final Timestamp dueDate = activity['fecha_vencimiento'];
+            final now = Timestamp.now();
+            return now.compareTo(dueDate) > 0 &&
+                !(activity['alumnos'] as List).contains(nombre);
+          }).toList();
+        }
+
+        if (filteredActivities.isEmpty) {
+          return Center(
+              child: Text(status == TaskStatus.pending
+                  ? 'No hay tareas pendientes.'
+                  : status == TaskStatus.completed
+                      ? 'No hay tareas completadas.'
+                      : 'No hay tareas vencidas.'));
+        }
+
+        return ListView.builder(
+          itemCount: filteredActivities.length,
+          itemBuilder: (context, index) {
+            final activity = filteredActivities[index];
+            return TaskCard(
+              task: Task(
+                title: activity['titulo'],
+                dueDate: status == TaskStatus.overdue
+                    ? _calculateOverdue(activity['fecha_vencimiento'])
+                    : activity['fecha_vencimiento'].toDate().toString(),
+              ),
+              status: status,
             );
           },
-          child: TaskCard(task: tasks[index], status: status),
         );
       },
     );
   }
 
-  List<Task> getTasks(TaskStatus status) {
-    switch (status) {
-      case TaskStatus.completed:
-        return [
-          Task(title: 'Tarea completada 1', dueDate: 'Hoy a las 3:00 PM'),
-          Task(title: 'Tarea completada 2', dueDate: 'Ayer'),
-        ];
-      case TaskStatus.pending:
-        return [
-          Task(title: 'Tarea pendiente 1', dueDate: 'Mañana a las 9:00 AM'),
-          Task(title: 'Tarea pendiente 2', dueDate: 'Próxima semana'),
-        ];
-      case TaskStatus.overdue:
-        return [
-          Task(title: 'Tarea vencida 1', dueDate: 'Ayer'),
-          Task(title: 'Tarea vencida 2', dueDate: 'Hoy a las 10:00 AM'),
-        ];
-    }
+  String _calculateOverdue(Timestamp dueDate) {
+    final now = Timestamp.now();
+    final difference = now.seconds - dueDate.seconds;
+    final days = (difference / (60 * 60 * 24)).floor();
+    return 'Hace $days días';
   }
 }
+
+enum TaskStatus { completed, pending, overdue }
 
 class TaskCard extends StatelessWidget {
   final Task task;
   final TaskStatus status;
 
-  const TaskCard({super.key, required this.task, required this.status});
+  const TaskCard({Key? key, required this.task, required this.status})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -128,33 +205,4 @@ class Task {
   final String dueDate;
 
   Task({required this.title, required this.dueDate});
-}
-
-class TaskDetailsScreen extends StatelessWidget {
-  final Task task;
-
-  const TaskDetailsScreen({super.key, required this.task});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalles de la tarea'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Título: ${task.title}',
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Text('Fecha de vencimiento: ${task.dueDate}',
-                style: const TextStyle(fontSize: 16)),
-          ],
-        ),
-      ),
-    );
-  }
 }

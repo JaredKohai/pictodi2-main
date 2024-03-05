@@ -92,6 +92,7 @@ class ClassList extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => ClassDetailPage(
+                              nombre: nombre,
                               className: classes[firstIndex].name,
                               instituto: instituto,
                               grado: grado,
@@ -113,6 +114,7 @@ class ClassList extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ClassDetailPage(
+                                nombre: nombre,
                                 className: classes[secondIndex].name,
                                 instituto: instituto,
                                 grado: grado,
@@ -260,6 +262,7 @@ class SearchBar extends StatelessWidget {
 
 class ClassDetailPage extends StatelessWidget {
   final String className;
+  final String nombre;
   final String instituto;
   final String grado;
   final String grupo;
@@ -270,6 +273,7 @@ class ClassDetailPage extends StatelessWidget {
     required this.instituto,
     required this.grado,
     required this.grupo,
+    required this.nombre,
   }) : super(key: key);
 
   @override
@@ -296,7 +300,13 @@ class ClassDetailPage extends StatelessWidget {
             return Center(child: CircularProgressIndicator());
           }
 
-          List<DocumentSnapshot> activities = snapshot.data!.docs;
+          List<DocumentSnapshot> allActivities = snapshot.data!.docs;
+
+          // Filtrar actividades que no han sido completadas por el alumno
+          List<DocumentSnapshot> activities = allActivities.where((activity) {
+            List<dynamic> alumnos = activity['alumnos'];
+            return !alumnos.contains(nombre);
+          }).toList();
 
           if (activities.isEmpty) {
             return Center(child: Text('No hay actividades disponibles.'));
@@ -305,13 +315,13 @@ class ClassDetailPage extends StatelessWidget {
           return ListView.builder(
             itemCount: activities.length,
             itemBuilder: (context, index) {
-              var activityData =
-                  activities[index].data() as Map<String, dynamic>;
+              var activityData = activities[index];
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: GestureDetector(
                   onTap: () {
-                    _showConfirmationDialog(context, activityData);
+                    _showConfirmationDialog(
+                        context, activityData, activities[index].id);
                   },
                   child: Container(
                     decoration: BoxDecoration(
@@ -335,10 +345,10 @@ class ClassDetailPage extends StatelessWidget {
     );
   }
 
-  void _showConfirmationDialog(
-      BuildContext context, Map<String, dynamic> activityData) {
+  void _showConfirmationDialog(BuildContext context,
+      DocumentSnapshot activitySnapshot, String actividadId) {
     List<String> imagenesSeleccionadas =
-        List<String>.from(activityData['imagenes_seleccionadas']);
+        List<String>.from(activitySnapshot['imagenes_seleccionadas']);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -353,11 +363,14 @@ class ClassDetailPage extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              _registrarActividadCompletada(activitySnapshot, actividadId);
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ActMemoramaPage(
-                      imagenesSeleccionadas: imagenesSeleccionadas),
+                    imagenesSeleccionadas: imagenesSeleccionadas,
+                    nombre: nombre,
+                  ),
                 ),
               );
             },
@@ -366,5 +379,22 @@ class ClassDetailPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _registrarActividadCompletada(
+      DocumentSnapshot activitySnapshot, String actividadId) async {
+    try {
+      // Agrega el nombre del niño a la colección de actividades completadas
+      await FirebaseFirestore.instance
+          .collection('actividades_completadas')
+          .doc(actividadId)
+          .update({
+        'alumnos': FieldValue.arrayUnion([nombre]),
+      });
+
+      print('Actividad completada registrada exitosamente para $nombre.');
+    } catch (e) {
+      print('Error al registrar la actividad completada: $e');
+    }
   }
 }
