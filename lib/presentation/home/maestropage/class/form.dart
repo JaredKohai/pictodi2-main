@@ -34,7 +34,10 @@ class _CustomFormState extends State<CustomForm> {
   TextEditingController descriptionController = TextEditingController();
   DateTime? selectedDate; // Nueva variable para almacenar la fecha seleccionada
   TipoActividad? selectedActividad;
-  List<String> selectedImages = []; // Lista para almacenar las imágenes seleccionadas
+  List<String> selectedImages =
+      []; // Lista para almacenar las imágenes seleccionadas
+  bool isSending =
+      false; // Variable para controlar si se están enviando los datos
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +46,11 @@ class _CustomFormState extends State<CustomForm> {
         title: Text('Formulario'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.only(
+          left: 16.0,
+          right: 16.0,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -87,7 +94,8 @@ class _CustomFormState extends State<CustomForm> {
                     ),
                     _buildDateField(), // Nuevo campo para seleccionar la fecha
                     SizedBox(height: 20),
-                    Visibility( // Agregar Visibility
+                    Visibility(
+                      // Agregar Visibility
                       visible: selectedActividad == TipoActividad.Memorama,
                       child: ElevatedButton(
                         onPressed: () {
@@ -95,16 +103,22 @@ class _CustomFormState extends State<CustomForm> {
                             _navigateToSeleccionarPictogramas(context);
                           }
                         },
-                        child: Text('Agregar los pictogramas'), // Cambiar el texto del botón
+                        child: Text(
+                            'Agregar los pictogramas'), // Cambiar el texto del botón
                       ),
                     ),
                     SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _saveDataToFirestore();
-                        }
-                      },
+                      onPressed: isSending
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                setState(() {
+                                  isSending = true;
+                                });
+                                _saveDataToFirestore();
+                              }
+                            },
                       child: Text('Enviar'),
                     ),
                   ],
@@ -195,7 +209,7 @@ class _CustomFormState extends State<CustomForm> {
           ),
           child: Text(
             selectedDate != null
-                ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year} ${selectedDate!.hour}:${selectedDate!.minute}'
                 : 'Selecciona una fecha',
           ),
         ),
@@ -211,9 +225,21 @@ class _CustomFormState extends State<CustomForm> {
       lastDate: DateTime(2101),
     );
     if (pickedDate != null && pickedDate != selectedDate) {
-      setState(() {
-        selectedDate = pickedDate;
-      });
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+      if (pickedTime != null) {
+        setState(() {
+          selectedDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
     }
   }
 
@@ -271,7 +297,8 @@ class _CustomFormState extends State<CustomForm> {
       'materia': materia,
       'instituto': instituto, // Agregar el valor del Instituto
       'fecha_vencimiento': fechaVencimiento, // Añadir la fecha de vencimiento
-      'imagenes_seleccionadas': selectedImages, // Guardar las imágenes seleccionadas
+      'imagenes_seleccionadas':
+          selectedImages, // Guardar las imágenes seleccionadas
     });
 
     // Limpiar los campos después de guardar los datos
@@ -280,20 +307,27 @@ class _CustomFormState extends State<CustomForm> {
     selectedDate = null; // Limpiar la fecha seleccionada
     selectedImages.clear(); // Limpiar la lista de imágenes seleccionadas
 
+    // Mostrar un mensaje de confirmación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Datos guardados correctamente en Firestore.'),
       ),
     );
+
+    setState(() {
+      isSending = false; // Permitir enviar nuevamente
+    });
   }
 }
 
 class SeleccionarPictogramasPage extends StatefulWidget {
   @override
-  _SeleccionarPictogramasPageState createState() => _SeleccionarPictogramasPageState();
+  _SeleccionarPictogramasPageState createState() =>
+      _SeleccionarPictogramasPageState();
 }
 
-class _SeleccionarPictogramasPageState extends State<SeleccionarPictogramasPage> {
+class _SeleccionarPictogramasPageState
+    extends State<SeleccionarPictogramasPage> {
   // Aquí puedes implementar la lógica para seleccionar los pictogramas
 
   @override

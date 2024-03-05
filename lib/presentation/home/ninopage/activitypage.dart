@@ -124,8 +124,14 @@ class TaskList extends StatelessWidget {
           filteredActivities = activities.where((activity) {
             final Timestamp dueDate = activity['fecha_vencimiento'];
             final now = Timestamp.now();
+            final difference = now.seconds - dueDate.seconds;
+            final days = (difference / (60 * 60 * 24)).floor();
+            final hours = ((difference % (60 * 60 * 24)) / (60 * 60)).floor();
+            final minutes =
+                (((difference % (60 * 60 * 24)) % (60 * 60)) / 60).floor();
             return now.compareTo(dueDate) > 0 &&
-                !(activity['alumnos'] as List).contains(nombre);
+                !(activity['alumnos'] as List).contains(nombre) &&
+                (days > 0 || hours > 0 || minutes > 0);
           }).toList();
         }
 
@@ -145,9 +151,11 @@ class TaskList extends StatelessWidget {
             return TaskCard(
               task: Task(
                 title: activity['titulo'],
-                dueDate: status == TaskStatus.overdue
-                    ? _calculateOverdue(activity['fecha_vencimiento'])
-                    : activity['fecha_vencimiento'].toDate().toString(),
+                dueDate: status == TaskStatus.completed
+                    ? activity['fecha_vencimiento'].toDate().toString()
+                    : status == TaskStatus.overdue
+                        ? _calculateOverdue(activity['fecha_vencimiento'])
+                        : _calculateDueDate(activity['fecha_vencimiento']),
               ),
               status: status,
             );
@@ -157,11 +165,34 @@ class TaskList extends StatelessWidget {
     );
   }
 
+  String _calculateDueDate(Timestamp dueDate) {
+    final now = Timestamp.now();
+    final difference = now.seconds - dueDate.seconds;
+    final days = (difference / (60 * 60 * 24)).floor();
+    final hours = ((difference % (60 * 60 * 24)) / (60 * 60)).floor();
+    final minutes = (((difference % (60 * 60 * 24)) % (60 * 60)) / 60).floor();
+    if (days > 0) {
+      return 'Hace $days días';
+    } else if (hours > 0) {
+      return 'Hace $hours horas';
+    } else {
+      return 'Hace $minutes minutos';
+    }
+  }
+
   String _calculateOverdue(Timestamp dueDate) {
     final now = Timestamp.now();
     final difference = now.seconds - dueDate.seconds;
     final days = (difference / (60 * 60 * 24)).floor();
-    return 'Hace $days días';
+    final hours = ((difference % (60 * 60 * 24)) / (60 * 60)).floor();
+    final minutes = (((difference % (60 * 60 * 24)) % (60 * 60)) / 60).floor();
+    if (days > 0) {
+      return 'Hace $days días';
+    } else if (hours > 0) {
+      return 'Hace $hours horas';
+    } else {
+      return 'Hace $minutes minutos';
+    }
   }
 }
 
