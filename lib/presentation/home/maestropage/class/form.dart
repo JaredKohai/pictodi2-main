@@ -42,90 +42,95 @@ class _CustomFormState extends State<CustomForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset:
+          false, // Evitar que el teclado cause desbordamiento
       appBar: AppBar(
         title: Text('Formulario'),
       ),
-      body: Padding(
-        padding: EdgeInsets.only(
-          left: 16.0,
-          right: 16.0,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Profesor: ${widget.nombre}'),
-            Text('Instituto: ${widget.instituto}'),
-            Text('Grado: ${widget.grado}'),
-            Text('Grupo: ${widget.grupo}'),
-            Text(
-                'Materia: ${widget.nombreMateria}'), // Mostrar el nombre de la materia
-            SizedBox(height: 20),
-            Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildDropdownField(
-                      labelText: 'Tipo de Actividad',
-                      value: selectedActividad,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedActividad = value as TipoActividad?;
-                        });
-                      },
-                      items: TipoActividad.values
-                          .map((tipo) => DropdownMenuItem(
-                                value: tipo,
-                                child: Text(_getActividadLabel(tipo)),
-                              ))
-                          .toList(),
-                    ),
-                    _buildTextField(
-                      controller: titleNameController,
-                      labelText: 'Titulo',
-                      icon: Icons.school,
-                    ),
-                    _buildTextField(
-                      controller: descriptionController,
-                      labelText: 'Descripción',
-                      icon: Icons.description,
-                    ),
-                    _buildDateField(), // Nuevo campo para seleccionar la fecha
-                    SizedBox(height: 20),
-                    Visibility(
-                      // Agregar Visibility
-                      visible: selectedActividad == TipoActividad.Memorama,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            _navigateToSeleccionarPictogramas(context);
-                          }
+      body: SingleChildScrollView(
+        // Envolver el contenido con SingleChildScrollView
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16.0,
+            right: 16.0,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Profesor: ${widget.nombre}'),
+              Text('Instituto: ${widget.instituto}'),
+              Text('Grado: ${widget.grado}'),
+              Text('Grupo: ${widget.grupo}'),
+              Text(
+                  'Materia: ${widget.nombreMateria}'), // Mostrar el nombre de la materia
+              SizedBox(height: 20),
+              Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildDropdownField(
+                        labelText: 'Tipo de Actividad',
+                        value: selectedActividad,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedActividad = value as TipoActividad?;
+                          });
                         },
-                        child: Text(
-                            'Agregar los pictogramas'), // Cambiar el texto del botón
+                        items: TipoActividad.values
+                            .map((tipo) => DropdownMenuItem(
+                                  value: tipo,
+                                  child: Text(_getActividadLabel(tipo)),
+                                ))
+                            .toList(),
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: isSending
-                          ? null
-                          : () {
-                              if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  isSending = true;
-                                });
-                                _saveDataToFirestore();
-                              }
-                            },
-                      child: Text('Enviar'),
-                    ),
-                  ],
+                      _buildTextField(
+                        controller: titleNameController,
+                        labelText: 'Titulo',
+                        icon: Icons.school,
+                      ),
+                      _buildTextField(
+                        controller: descriptionController,
+                        labelText: 'Descripción',
+                        icon: Icons.description,
+                      ),
+                      _buildDateField(), // Nuevo campo para seleccionar la fecha
+                      SizedBox(height: 20),
+                      Visibility(
+                        // Agregar Visibility
+                        visible: selectedActividad == TipoActividad.Memorama,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              _navigateToSeleccionarPictogramas(context);
+                            }
+                          },
+                          child: Text(
+                              'Agregar los pictogramas'), // Cambiar el texto del botón
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: isSending
+                            ? null
+                            : () {
+                                if (_formKey.currentState!.validate()) {
+                                  setState(() {
+                                    isSending = true;
+                                  });
+                                  _saveDataToFirestore();
+                                }
+                              },
+                        child: Text('Enviar'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
