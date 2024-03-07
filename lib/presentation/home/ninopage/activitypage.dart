@@ -125,13 +125,9 @@ class TaskList extends StatelessWidget {
             final Timestamp dueDate = activity['fecha_vencimiento'];
             final now = Timestamp.now();
             final difference = now.seconds - dueDate.seconds;
-            final days = (difference / (60 * 60 * 24)).floor();
-            final hours = ((difference % (60 * 60 * 24)) / (60 * 60)).floor();
-            final minutes =
-                (((difference % (60 * 60 * 24)) % (60 * 60)) / 60).floor();
             return now.compareTo(dueDate) > 0 &&
                 !(activity['alumnos'] as List).contains(nombre) &&
-                (days > 0 || hours > 0 || minutes > 0);
+                difference > 0;
           }).toList();
         }
 
@@ -148,17 +144,13 @@ class TaskList extends StatelessWidget {
           itemCount: filteredActivities.length,
           itemBuilder: (context, index) {
             final activity = filteredActivities[index];
-            return TaskCard(
-              task: Task(
-                title: activity['titulo'],
-                dueDate: status == TaskStatus.completed
-                    ? activity['fecha_vencimiento'].toDate().toString()
-                    : status == TaskStatus.overdue
-                        ? _calculateOverdue(activity['fecha_vencimiento'])
-                        : _calculateDueDate(activity['fecha_vencimiento']),
-              ),
-              status: status,
+            final task = Task(
+              title: activity['titulo'],
+              dueDate: _calculateDueDate(activity['fecha_vencimiento']),
+              isPending: status == TaskStatus.pending,
+              isOverdue: status == TaskStatus.overdue,
             );
+            return TaskCard(task: task, status: status);
           },
         );
       },
@@ -168,24 +160,10 @@ class TaskList extends StatelessWidget {
   String _calculateDueDate(Timestamp dueDate) {
     final now = Timestamp.now();
     final difference = now.seconds - dueDate.seconds;
-    final days = (difference / (60 * 60 * 24)).floor();
-    final hours = ((difference % (60 * 60 * 24)) / (60 * 60)).floor();
-    final minutes = (((difference % (60 * 60 * 24)) % (60 * 60)) / 60).floor();
-    if (days > 0) {
-      return 'Hace $days días';
-    } else if (hours > 0) {
-      return 'Hace $hours horas';
-    } else {
-      return 'Hace $minutes minutos';
-    }
-  }
+    final days = difference ~/ (60 * 60 * 24);
+    final hours = (difference % (60 * 60 * 24)) ~/ (60 * 60);
+    final minutes = ((difference % (60 * 60 * 24)) % (60 * 60)) ~/ 60;
 
-  String _calculateOverdue(Timestamp dueDate) {
-    final now = Timestamp.now();
-    final difference = now.seconds - dueDate.seconds;
-    final days = (difference / (60 * 60 * 24)).floor();
-    final hours = ((difference % (60 * 60 * 24)) / (60 * 60)).floor();
-    final minutes = (((difference % (60 * 60 * 24)) % (60 * 60)) / 60).floor();
     if (days > 0) {
       return 'Hace $days días';
     } else if (hours > 0) {
@@ -209,23 +187,31 @@ class TaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     IconData iconData = Icons.check_circle;
     Color iconColor = Colors.green;
+    String subTitle = '';
 
     if (status == TaskStatus.pending) {
       iconData = Icons.access_time;
       iconColor = Colors.orange;
+      subTitle =
+          task.isPending ? 'Faltan ${task.dueDate}' : 'Entregado con éxito';
     } else if (status == TaskStatus.overdue) {
       iconData = Icons.error;
       iconColor = Colors.red;
+      subTitle = 'Vencido hace ${task.dueDate}';
+    } else if (status == TaskStatus.completed) {
+      iconData = Icons.check_circle;
+      iconColor = Colors.green;
+      subTitle = 'Completado hace ${task.dueDate}';
     }
 
     return Card(
       margin: const EdgeInsets.all(8.0),
       elevation: 3.0,
       child: ListTile(
+        leading: Icon(iconData, color: iconColor),
         title: Text(task.title,
             style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(task.dueDate),
-        trailing: Icon(iconData, color: iconColor),
+        subtitle: Text(subTitle),
       ),
     );
   }
@@ -234,6 +220,22 @@ class TaskCard extends StatelessWidget {
 class Task {
   final String title;
   final String dueDate;
+  final bool isPending;
+  final bool isOverdue;
 
-  Task({required this.title, required this.dueDate});
+  Task({
+    required this.title,
+    required this.dueDate,
+    required this.isPending,
+    required this.isOverdue,
+  });
+}
+
+void main() {
+  runApp(ActivityPage(
+    nombre: 'Juan',
+    instituto: 'Instituto XYZ',
+    grado: '5',
+    grupo: 'A',
+  ));
 }

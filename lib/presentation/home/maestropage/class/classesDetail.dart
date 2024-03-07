@@ -1,13 +1,7 @@
-// ignore_for_file: file_names
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'form.dart'
-    // ignore: library_prefixes
-    as FormPage; // Agregar un prefijo para evitar conflictos de nombres
-import 'classes.dart'
-    // ignore: library_prefixes
-    as ClassModels; // Agregar un prefijo para evitar conflictos de nombres
+import 'form.dart' as FormPage;
+import 'classes.dart' as ClassModels;
 
 class Activity {
   final String name;
@@ -21,18 +15,17 @@ class ClassDetailPage extends StatelessWidget {
   final List<String> asignaturas;
   final String grado;
   final String grupo;
-  final ClassModels.ClassData
-      classData; // Utilizar el prefijo para evitar conflictos de nombres
+  final ClassModels.ClassData classData;
 
   const ClassDetailPage({
-    super.key,
+    Key? key,
     required this.classData,
     required this.nombre,
     required this.instituto,
     required this.asignaturas,
     required this.grado,
     required this.grupo,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -50,14 +43,12 @@ class ClassDetailPage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => FormPage.CustomForm(
-                        nombre: nombre, // Pasar 'nombre' al CustomForm
-                        instituto: instituto, // Pasar 'instituto' al CustomForm
-                        asignaturas:
-                            asignaturas, // Pasar 'asignaturas' al CustomForm
-                        grado: grado, // Pasar 'grado' al CustomForm
-                        grupo: grupo, // Pasar 'grupo' al CustomForm
-                        nombreMateria: classData
-                            .className, // Pasar el nombre de la materia
+                        nombre: nombre,
+                        instituto: instituto,
+                        asignaturas: asignaturas,
+                        grado: grado,
+                        grupo: grupo,
+                        nombreMateria: classData.className,
                       ),
                     ),
                   );
@@ -75,14 +66,12 @@ class ClassDetailPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            // Contenido de la pestaña 'Actividades'
             FutureBuilder<QuerySnapshot>(
               future: FirebaseFirestore.instance
                   .collection('actividades')
                   .where('grado', isEqualTo: grado)
                   .where('grupo', isEqualTo: grupo)
-                  .where('materia',
-                      isEqualTo: classData.className) // Filtrar por materia
+                  .where('materia', isEqualTo: classData.className)
                   .get(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -95,15 +84,25 @@ class ClassDetailPage extends StatelessWidget {
 
                 final actividades = snapshot.data!.docs;
 
-                return Expanded(
-                  child: ListView.builder(
-                    itemCount: actividades.length,
-                    itemBuilder: (context, index) {
-                      final actividad =
-                          actividades[index].data() as Map<String, dynamic>;
+                return ListView.builder(
+                  itemCount: actividades.length,
+                  itemBuilder: (context, index) {
+                    final actividad =
+                        actividades[index].data() as Map<String, dynamic>;
 
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ActivityDetailPage(
+                                actividad: actividad,
+                              ),
+                            ),
+                          );
+                        },
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.blue,
@@ -124,7 +123,7 @@ class ClassDetailPage extends StatelessWidget {
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                   Text(
-                                    'Fecha de vencimiento: ${actividad['fecha']}',
+                                    'Fecha de vencimiento: ${calculateTimeDifference(actividad['fecha_vencimiento'].toDate())}',
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ],
@@ -132,13 +131,12 @@ class ClassDetailPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
-
             FutureBuilder<QuerySnapshot>(
               future: FirebaseFirestore.instance
                   .collection('niños')
@@ -175,18 +173,84 @@ class ClassDetailPage extends StatelessWidget {
       ),
     );
   }
+
+  String calculateTimeDifference(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = dateTime.difference(now);
+
+    if (difference.isNegative) {
+      return 'Vencido hace ${-difference.inDays}d ${-difference.inHours.remainder(24)}h ${-difference.inMinutes.remainder(60)}m';
+    } else {
+      final days = difference.inDays;
+      final hours = difference.inHours.remainder(24);
+      final minutes = difference.inMinutes.remainder(60);
+
+      return '${days}d ${hours}h ${minutes}m';
+    }
+  }
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: ClassDetailPage(
-      classData: ClassModels.ClassData(
-          'Nombre de la clase', Colors.blue, 'assets/math-class.png', []),
-      nombre: 'Nombre del profesor',
-      instituto: 'Nombre del instituto',
-      asignaturas: const ['Asignatura 1', 'Asignatura 2'],
-      grado: 'Grado',
-      grupo: 'Grupo',
-    ),
-  ));
+class ActivityDetailPage extends StatelessWidget {
+  final Map<String, dynamic> actividad;
+
+  const ActivityDetailPage({Key? key, required this.actividad})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final List<dynamic> alumnos = actividad['alumnos'];
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Detalles de la Actividad'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Actividad: ${actividad['titulo']}',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text('Instrucciones: ${actividad['instrucciones']}'),
+            SizedBox(height: 10),
+            Text(
+                'Fecha de vencimiento: ${calculateTimeDifference(actividad['fecha_vencimiento'].toDate())}'),
+            SizedBox(height: 10),
+            Text(
+              'Alumnos que la finalizaron:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: alumnos.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(alumnos[index]),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String calculateTimeDifference(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = dateTime.difference(now);
+
+    if (difference.isNegative) {
+      return 'Vencido hace ${-difference.inDays}d ${-difference.inHours.remainder(24)}h ${-difference.inMinutes.remainder(60)}m';
+    } else {
+      final days = difference.inDays;
+      final hours = difference.inHours.remainder(24);
+      final minutes = difference.inMinutes.remainder(60);
+
+      return '${days}d ${hours}h ${minutes}m';
+    }
+  }
 }
