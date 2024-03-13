@@ -1,243 +1,297 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pictodi2/presentation/home/ninopage/iagen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+// ignore: must_be_immutable
+class VocabularyDashboard extends StatelessWidget {
+  Items item1 = Items(title: "Comida", img: "assets/burger.png");
+  Items item2 = Items(title: "Animales", img: "assets/pet.png");
+  Items item4 = Items(title: "Higiene", img: "assets/hygiene-routine.png");
+  Items item5 = Items(title: "Deportes", img: "assets/training.png");
+  Items item6 = Items(title: "Reglas", img: "assets/rule.png");
+  Items item7 = Items(title: "Escuela", img: "assets/stationery.png");
+  Items item8 = Items(title: "Arte", img: "assets/art.png");
+  Items item9 = Items(title: "Naturaleza", img: "assets/forest.png");
 
-  // Obtener los datos del maestro desde Firebase
-  User? user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('profesores')
-        .doc(user.uid)
-        .get();
-    if (userDoc.exists) {
-      String nombre = userDoc['nombre'];
-      String instituto = userDoc['instituto'];
-      List<dynamic> asignaturasDynamic = userDoc['asignaturas'];
-      List<String> asignaturas = asignaturasDynamic.cast<String>();
-      String grado = userDoc['grado'];
-      String grupo = userDoc['grupo'];
-
-      // Ejecutar la aplicación con los datos del maestro
-      runApp(ActivityPage(
-        nombre: nombre,
-        instituto: instituto,
-        asignaturas: asignaturas,
-        grado: grado,
-        grupo: grupo,
-      ));
-      return;
-    }
-  }
-
-  // Si no se pueden obtener los datos del maestro, mostrar un mensaje de error
-  runApp(MaterialApp(
-    home: Scaffold(
-      body: Center(
-        child: Text(
-            'Error: No se pudieron obtener los datos del maestro desde Firebase.'),
-      ),
-    ),
-  ));
-}
-
-class ActivityPage extends StatelessWidget {
-  final String nombre;
-  final String instituto;
-  final List<String> asignaturas;
-  final String grado;
-  final String grupo;
-
-  const ActivityPage({
-    Key? key,
-    required this.nombre,
-    required this.instituto,
-    required this.asignaturas,
-    required this.grado,
-    required this.grupo,
-  }) : super(key: key);
+  VocabularyDashboard({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    void refresh() {
-      // Implement your refresh logic here (e.g., call an API to fetch new data)
-      print('Refreshing data...');
-    }
-
-    return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      debugShowCheckedModeBanner: false,
-      home: DefaultTabController(
-        length: 3,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.white,
-                  backgroundImage: AssetImage('assets/teachers.png'),
-                ),
-                SizedBox(width: 10.0),
-                Text('Actividades'),
-              ],
-            ),
-            actions: [
-              PopupMenuButton(
-                onSelected: (value) {
-                  if (value == 'refresh') {
-                    refresh();
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'refresh',
-                    child: Text('Actualizar'),
-                  ),
-                ],
-              ),
-            ],
-            bottom: const TabBar(
-              tabs: [
-                Tab(text: 'Pendientes'),
-                Tab(text: 'Completados'),
-                Tab(text: 'Vencidos'),
-              ],
-            ),
-          ),
-          body: const TabBarView(
-            children: [
-              TaskList(status: TaskStatus.pending),
-              TaskList(status: TaskStatus.completed),
-              TaskList(status: TaskStatus.overdue),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-enum TaskStatus { completed, pending, overdue }
-
-class TaskList extends StatelessWidget {
-  final TaskStatus status;
-
-  const TaskList({Key? key, required this.status}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    List<Task> tasks = getTasks(status);
-
-    return ListView.builder(
-      itemCount: tasks.length,
-      itemBuilder: (context, index) {
-        return InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => TaskDetailsScreen(task: tasks[index])),
-            );
-          },
-          child: TaskCard(task: tasks[index], status: status),
-        );
-      },
-    );
-  }
-
-  List<Task> getTasks(TaskStatus status) {
-    switch (status) {
-      case TaskStatus.completed:
-        return [
-          Task(title: 'Tarea completada 1', dueDate: 'Hoy a las 3:00 PM'),
-          Task(title: 'Tarea completada 2', dueDate: 'Ayer'),
-        ];
-      case TaskStatus.pending:
-        return [
-          Task(title: 'Tarea pendiente 1', dueDate: 'Mañana a las 9:00 AM'),
-          Task(title: 'Tarea pendiente 2', dueDate: 'Próxima semana'),
-        ];
-      case TaskStatus.overdue:
-        return [
-          Task(title: 'Tarea vencida 1', dueDate: 'Ayer'),
-          Task(title: 'Tarea vencida 2', dueDate: 'Hoy a las 10:00 AM'),
-        ];
-    }
-  }
-}
-
-class TaskCard extends StatelessWidget {
-  final Task task;
-  final TaskStatus status;
-
-  const TaskCard({Key? key, required this.task, required this.status})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    IconData iconData = Icons.check_circle;
-    Color iconColor = Colors.green;
-
-    if (status == TaskStatus.pending) {
-      iconData = Icons.access_time;
-      iconColor = Colors.orange;
-    } else if (status == TaskStatus.overdue) {
-      iconData = Icons.error;
-      iconColor = Colors.red;
-    }
-
-    return Card(
-      margin: const EdgeInsets.all(8.0),
-      elevation: 3.0,
-      child: ListTile(
-        title: Text(task.title,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(task.dueDate),
-        trailing: Icon(iconData, color: iconColor),
-      ),
-    );
-  }
-}
-
-class Task {
-  final String title;
-  final String dueDate;
-
-  const Task({required this.title, required this.dueDate});
-}
-
-class TaskDetailsScreen extends StatelessWidget {
-  final Task task;
-
-  const TaskDetailsScreen({Key? key, required this.task}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+    List<Items> myList = [
+      item1,
+      item2,
+      item4,
+      item5,
+      item6,
+      item7,
+      item8,
+      item9
+    ];
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalles de la tarea'),
-      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Título: ${task.title}',
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Text('Fecha de vencimiento: ${task.dueDate}',
-                style: const TextStyle(fontSize: 16)),
+            SizedBox(height: 16),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 18,
+                mainAxisSpacing: 18,
+                children: myList.map((data) {
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => GeneradorIA()),
+                      );
+                    },
+                    child: Text("Generar con IA"),
+                  );
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EmptyPage(
+                            category: data.title,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset(
+                            data.img,
+                            width: 42,
+                          ),
+                          const SizedBox(
+                            height: 14,
+                          ),
+                          Text(
+                            data.title,
+                            style: GoogleFonts.openSans(
+                              textStyle: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          const SizedBox(
+                            height: 14,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+class Items {
+  String title;
+  String img;
+
+  Items({required this.title, required this.img});
+}
+
+class EmptyPage extends StatelessWidget {
+  final String category;
+
+  const EmptyPage({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(category),
+      ),
+      body: FutureBuilder(
+        future: getPictograms(category),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            ); // Show a loading indicator while fetching data
+          } else {
+            if (snapshot.hasError) {
+              return Center(
+                child: Text('Error: ${snapshot.error}'),
+              ); // Show error message if data fetching fails
+            } else {
+              List<Pictogram> pictograms = snapshot.data ?? [];
+              return GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2, // Two columns
+                  childAspectRatio:
+                      0.7, // Aspect ratio of 0.7 for better appearance
+                  mainAxisSpacing: 10.0, // Spacing between rows
+                  crossAxisSpacing: 10.0, // Spacing between columns
+                ),
+                itemCount: pictograms.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      showPictogramDetails(context,
+                          pictograms[index]); // Show pictogram details on tap
+                    },
+                    child: Card(
+                      elevation: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Expanded(
+                            child: Image.network(
+                              pictograms[index].imageUrl,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              pictograms[index].title,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              pictograms[index].description,
+                              style: TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  void showPictogramDetails(BuildContext context, Pictogram pictogram) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.network(
+                pictogram.imageUrl,
+                height: 200, // Set the height of the image
+                width:
+                    double.infinity, // Set the width to fill the entire screen
+                fit: BoxFit.cover, // Ensure the image covers the entire space
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Title: ${pictogram.title}',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Description: ${pictogram.description}',
+                style: TextStyle(fontSize: 16),
+              ),
+              Text(
+                'Author: ${pictogram.author}',
+                style: TextStyle(fontSize: 16),
+              ),
+              Text(
+                'Category: ${pictogram.category}',
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // To be implemented: Add save functionality
+                },
+                child: Text("Guardar"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<List<Pictogram>> getPictograms(String category) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('pictograms')
+        .where('category', isEqualTo: category)
+        .get();
+
+    List<Pictogram> pictograms = [];
+    querySnapshot.docs.forEach((doc) {
+      var data = doc.data();
+      if (data != null) {
+        pictograms.add(Pictogram.fromMap(data as Map<String, dynamic>));
+      }
+    });
+
+    return pictograms;
+  }
+}
+
+class Pictogram {
+  final String author;
+  final String category;
+  final String description;
+  final String imageUrl;
+  final String title;
+
+  Pictogram({
+    required this.author,
+    required this.category,
+    required this.description,
+    required this.imageUrl,
+    required this.title,
+  });
+
+  factory Pictogram.fromMap(Map<String, dynamic> map) {
+    return Pictogram(
+      author: map['author'] ?? '',
+      category: map['category'] ?? '',
+      description: map['description'] ?? '',
+      imageUrl: map['imageUrl'] ?? '',
+      title: map['title'] ?? '',
+    );
+  }
+}
+
+void main() {
+  runApp(MaterialApp(
+    home: Scaffold(
+      body: VocabularyDashboard(),
+    ),
+  ));
 }

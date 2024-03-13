@@ -46,18 +46,15 @@ class _MaestroPagesState extends State<MaestroPages> {
     super.initState();
     screens = [
       const NotificationClass(),
-      ClassesTabContent(        nombre: widget.nombre,
-        instituto: widget.instituto,
-        asignaturas: widget.asignaturas.map((e) => e.toString()).toList(), // Convertir a List<String>/ Convertir a List<String>
-        grado: widget.grado,
-        grupo: widget.grupo),
-      ActivityPage(
-        nombre: widget.nombre,
-        instituto: widget.instituto,
-        asignaturas: widget.asignaturas.map((e) => e.toString()).toList(), // Convertir a List<String>/ Convertir a List<String>
-        grado: widget.grado,
-        grupo: widget.grupo,
-      ),
+      ClassesTabContent(
+          nombre: widget.nombre,
+          instituto: widget.instituto,
+          asignaturas: widget.asignaturas
+              .map((e) => e.toString())
+              .toList(), // Convertir a List<String>/ Convertir a List<String>
+          grado: widget.grado,
+          grupo: widget.grupo),
+      VocabularyDashboard(),
       const GeneradorIA()
     ];
   }

@@ -96,7 +96,9 @@ class _KidDrawerScreenState extends State<KidDrawerScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PagePictograms(nombre: widget.nombre,),
+                        builder: (context) => PagePictograms(
+                          nombre: widget.nombre,
+                        ),
                       ),
                     );
                   },
@@ -128,12 +130,14 @@ class _KidDrawerScreenState extends State<KidDrawerScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ClasesPage(                          nombre: widget.nombre,
+                        builder: (context) => ClasesPage(
+                          nombre: widget.nombre,
                           instituto: widget.instituto,
                           diagnostico: widget.diagnostico,
                           grado: widget.grado,
                           grupo: widget.grupo,
-                          gravedad: widget.gravedad,),
+                          gravedad: widget.gravedad,
+                        ),
                       ),
                     );
                   },
@@ -149,12 +153,12 @@ class _KidDrawerScreenState extends State<KidDrawerScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ActivityPage( nombre: widget.nombre,
+                        builder: (context) => ActivityPage(
+                          nombre: widget.nombre,
                           instituto: widget.instituto,
-                          
                           grado: widget.grado,
                           grupo: widget.grupo,
-                          ),
+                        ),
                       ),
                     );
                   },
@@ -288,12 +292,12 @@ class _HomePageKidState extends State<HomePageKid> {
         gravedad: widget.gravedad,
       ),
       PagePictograms(nombre: widget.nombre),
-       ActivityPage(nombre: widget.nombre,
-                          instituto: widget.instituto,
-                          
-                          grado: widget.grado,
-                          grupo: widget.grupo,
-                          ),
+      ActivityPage(
+        nombre: widget.nombre,
+        instituto: widget.instituto,
+        grado: widget.grado,
+        grupo: widget.grupo,
+      ),
       PerfilPage(
         nombre: widget.nombre,
         instituto: widget.instituto,

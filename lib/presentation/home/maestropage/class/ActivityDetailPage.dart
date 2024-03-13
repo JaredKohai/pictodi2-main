@@ -81,22 +81,83 @@ class ActivityDetailPage extends StatelessWidget {
             ),
             SizedBox(height: 10),
             Expanded(
-              child: ListView.builder(
-                itemCount: alumnos.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: Icon(
-                      Icons.child_care,
-                      color: Colors.pink,
-                      size: 36,
-                    ),
-                    title: Text(
-                      alumnos[index],
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontFamily: 'Chewy',
+              child: FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('niños')
+                    .where('instituto', isEqualTo: actividad['instituto'])
+                    .where('grado', isEqualTo: actividad['grado'])
+                    .where('grupo', isEqualTo: actividad['grupo'])
+                    .get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+                  final List<String> todosLosAlumnos = snapshot.data!.docs
+                      .map((doc) => doc['nombre'] as String)
+                      .toList();
+
+                  final List<String> alumnosNoCompletaron = todosLosAlumnos
+                      .where((alumno) => !alumnos.contains(alumno))
+                      .toList();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: alumnosNoCompletaron.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            leading: Icon(
+                              Icons.child_care,
+                              color: Colors.pink,
+                              size: 36,
+                            ),
+                            title: Text(
+                              alumnosNoCompletaron[index],
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontFamily: 'Chewy',
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Alumnos que no han completado la actividad:',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: alumnos.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              leading: Icon(
+                                Icons.child_care,
+                                color: Colors.pink,
+                                size: 36,
+                              ),
+                              title: Text(
+                                alumnos[index],
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontFamily: 'Chewy',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
