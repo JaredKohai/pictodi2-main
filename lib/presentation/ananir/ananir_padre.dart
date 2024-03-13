@@ -125,8 +125,10 @@ class _AnadirPadrePageState extends State<AnadirPadrePage> {
               listType: MultiSelectListType.CHIP,
               onConfirm: (values) {
                 setState(() {
-                  _ninosSeleccionados =
-                      values.whereType<Nino>().map((nino) => nino.id).toList();
+                  _ninosSeleccionados = values
+                      .whereType<Nino>()
+                      .map((nino) => nino.nombre)
+                      .toList();
                 });
               },
               chipDisplay: MultiSelectChipDisplay(
