@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:pictodi2/presentation/home/ninopage/act_unir.dart';
 import 'act_memorama.dart';
 
 class ClasesPage extends StatelessWidget {
@@ -326,8 +327,7 @@ class ClassDetailPage extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.0),
-                      color: Colors
-                          .blue, // Color fijo para las tarjetas de actividad
+                      color: Colors.blue,
                     ),
                     child: ListTile(
                       title: Text(activityData['titulo'],
@@ -349,6 +349,8 @@ class ClassDetailPage extends StatelessWidget {
       DocumentSnapshot activitySnapshot, String actividadId) {
     List<String> imagenesSeleccionadas =
         List<String>.from(activitySnapshot['imagenes_seleccionadas']);
+    String tipoActividad =
+        activitySnapshot['tipo']; // Obtener el tipo de actividad
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -364,15 +366,28 @@ class ClassDetailPage extends StatelessWidget {
             onPressed: () {
               Navigator.pop(context);
               _registrarActividadCompletada(activitySnapshot, actividadId);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ActMemoramaPage(
-                    imagenesSeleccionadas: imagenesSeleccionadas,
-                    nombre: nombre,
+              if (tipoActividad == 'Memorama') {
+                // Verificar el tipo de actividad
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ActMemoramaPage(
+                      imagenesSeleccionadas: imagenesSeleccionadas,
+                      nombre: nombre,
+                    ),
                   ),
-                ),
-              );
+                );
+              } else if (tipoActividad == 'Unir') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UnirPage(
+                      imagenesSeleccionadas: imagenesSeleccionadas,
+                      nombre: nombre,
+                    ),
+                  ),
+                );
+              }
             },
             child: Text('Empezar'),
           ),
@@ -384,7 +399,6 @@ class ClassDetailPage extends StatelessWidget {
   void _registrarActividadCompletada(
       DocumentSnapshot activitySnapshot, String actividadId) async {
     try {
-      // Agrega el nombre del niño a la colección de actividades completadas
       await FirebaseFirestore.instance
           .collection('actividades_completadas')
           .doc(actividadId)

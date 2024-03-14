@@ -5,14 +5,13 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pictodi2/presentation/home/ninopage.dart';
+import 'package:pictodi2/presentation/home/padreprofileselect.dart';
 import 'forgotPassword.dart';
 import '../home/psicologo_page.dart';
 import '../home/padre_page.dart';
 import '../home/admin_page.dart';
 import '../home/director_page.dart';
 import '../home/maestro_page.dart';
-
-
 
 class LoginPage extends StatefulWidget {
   final List asignaturas;
@@ -151,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => PadrePage(
+                  builder: (context) => PadresPages(
                         nombre: nombre,
                       )),
             );

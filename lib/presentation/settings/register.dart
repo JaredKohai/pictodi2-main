@@ -182,8 +182,6 @@ class Crear {
     required String titulo,
     required String instrucciones,
     required String tipoActividad,
-    required String evaluacion,
-    required String fecha,
     required String grado,
     required String grupo,
     required String materia,
@@ -208,11 +206,10 @@ class Crear {
       // Registrar la actividad
       DocumentReference actividadDocRef =
           await FirebaseFirestore.instance.collection('actividades').add({
+        'id': '', // Crear el campo 'id' vacío
         'titulo': titulo,
         'instrucciones': instrucciones,
         'tipo': tipoActividad,
-        'evaluacion': evaluacion,
-        'fecha': fecha,
         'grado': grado,
         'grupo': grupo,
         'alumnos': alumnosIds,
@@ -221,26 +218,28 @@ class Crear {
         'instituto': instituto,
       });
 
-      // Obtener el ID de la nueva actividad de memorama
+      // Obtener el ID de la nueva actividad
       String actividadId = actividadDocRef.id;
 
-      // Guardar las imágenes seleccionadas y el ID de la actividad de memorama
+      // Actualizar el campo 'id' con el ID de la actividad
+      await actividadDocRef.update({'id': actividadId});
+
+      // Guardar las imágenes seleccionadas y el ID de la actividad
       await FirebaseFirestore.instance
           .collection('actividades_memorama')
           .doc(actividadId)
           .set({
+        'id': actividadId, // Agregar el ID de la actividad
         'titulo': titulo,
         'instrucciones': instrucciones,
         'tipo': tipoActividad,
-        'evaluacion': evaluacion,
-        'fecha': fecha,
         'grado': grado,
         'grupo': grupo,
         'alumnos': alumnosIds,
         'finalizado': false,
         'materia': materia,
         'instituto': instituto,
-        'imagenes_seleccionadas': selectedImages, // Usar selectedImages
+        'imagenes_seleccionadas': selectedImages,
       });
 
       print('Actividad registrada exitosamente.');

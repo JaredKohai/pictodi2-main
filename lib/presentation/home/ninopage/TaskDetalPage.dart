@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'activitypage.dart';
 class TaskDetailPage extends StatelessWidget {
   final Task task;

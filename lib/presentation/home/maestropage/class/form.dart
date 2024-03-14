@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'activities/memorama.dart'; // Importar la página Memorama
-import 'activities/unir.dart'; // Importar la página Unir
-import 'activities/seleccionar.dart'; // Importar la página Seleccionar
 
 // Enum para representar los tipos de actividad
-enum TipoActividad { Memorama, Unir, SeleccionaOpcion }
+enum TipoActividad { Memorama, Unir }
 
 class CustomForm extends StatefulWidget {
   final String nombre;
@@ -98,18 +96,15 @@ class _CustomFormState extends State<CustomForm> {
                       ),
                       _buildDateField(), // Nuevo campo para seleccionar la fecha
                       SizedBox(height: 20),
-                      Visibility(
-                        // Agregar Visibility
-                        visible: selectedActividad == TipoActividad.Memorama,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              _navigateToSeleccionarPictogramas(context);
-                            }
-                          },
-                          child: Text(
-                              'Agregar los pictogramas'), // Cambiar el texto del botón
-                        ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            _navigateToSeleccionarPictogramas(context);
+                          }
+                        },
+                        child: Text(selectedActividad == TipoActividad.Memorama
+                            ? 'Agregar los pictogramas'
+                            : 'Unir'), // Cambiar el texto del botón
                       ),
                       SizedBox(height: 20),
                       ElevatedButton(
@@ -192,8 +187,6 @@ class _CustomFormState extends State<CustomForm> {
         return 'Memorama';
       case TipoActividad.Unir:
         return 'Unir';
-      case TipoActividad.SeleccionaOpcion:
-        return 'Selecciona la opción correcta';
       default:
         return '';
     }
@@ -276,43 +269,45 @@ class _CustomFormState extends State<CustomForm> {
     String titulo = titleNameController.text;
     String instrucciones = descriptionController.text;
     String tipoActividad = _getActividadLabel(selectedActividad);
-    String evaluacion = widget.grado;
-    String fecha = widget.grupo;
     String grado = widget.grado;
     String grupo = widget.grupo;
-    String materia =
-        widget.nombreMateria; // Utilizar el nombre de la materia del widget
-    String instituto = widget.instituto; // Obtener el valor del instituto
+    String materia = widget.nombreMateria;
+    String instituto = widget.instituto;
 
-    // Obtén la fecha de vencimiento del controlador
     DateTime? fechaVencimiento = selectedDate;
 
-    // Guardar las imágenes seleccionadas y el ID de la actividad de memorama
+    List<String> imagenesSeleccionadas = [];
+    if (tipoActividad == 'Memorama' || tipoActividad == 'Unir') {
+      imagenesSeleccionadas = selectedImages;
+    }
+
     DocumentReference actividadRef =
         await FirebaseFirestore.instance.collection('actividades').add({
+      'id': '',
       'titulo': titulo,
       'instrucciones': instrucciones,
       'tipo': tipoActividad,
-      'evaluacion': evaluacion,
-      'fecha': fecha,
       'grado': grado,
       'grupo': grupo,
-      'alumnos': [], // Aquí debes usar la lista de identificadores de alumnos
+      'alumnos': [],
       'finalizado': false,
       'materia': materia,
-      'instituto': instituto, // Agregar el valor del Instituto
-      'fecha_vencimiento': fechaVencimiento, // Añadir la fecha de vencimiento
-      'imagenes_seleccionadas':
-          selectedImages, // Guardar las imágenes seleccionadas
+      'instituto': instituto,
+      'fecha_vencimiento': fechaVencimiento,
+      'imagenes_seleccionadas': imagenesSeleccionadas,
     });
 
-    // Limpiar los campos después de guardar los datos
+    String actividadId = actividadRef.id;
+
+    await actividadRef.update({'id': actividadId});
+
+    print('ID de la actividad guardada: $actividadId');
+
     titleNameController.clear();
     descriptionController.clear();
-    selectedDate = null; // Limpiar la fecha seleccionada
-    selectedImages.clear(); // Limpiar la lista de imágenes seleccionadas
+    selectedDate = null;
+    selectedImages.clear();
 
-    // Mostrar un mensaje de confirmación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Datos guardados correctamente en Firestore.'),
@@ -320,31 +315,8 @@ class _CustomFormState extends State<CustomForm> {
     );
 
     setState(() {
-      isSending = false; // Permitir enviar nuevamente
+      isSending = false;
     });
-  }
-}
-
-class SeleccionarPictogramasPage extends StatefulWidget {
-  @override
-  _SeleccionarPictogramasPageState createState() =>
-      _SeleccionarPictogramasPageState();
-}
-
-class _SeleccionarPictogramasPageState
-    extends State<SeleccionarPictogramasPage> {
-  // Aquí puedes implementar la lógica para seleccionar los pictogramas
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Seleccionar Pictogramas'),
-      ),
-      body: Center(
-        child: Text('Página de selección de pictogramas'),
-      ),
-    );
   }
 }
 

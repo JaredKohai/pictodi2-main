@@ -377,13 +377,13 @@ class _HomePageKidState extends State<HomePageKid> {
             ),
             GButton(
               icon: Icons.search,
-              text: 'Pictogramas',
+              text: 'Pictograms',
               iconActiveColor: Colors.white,
               textColor: Colors.white,
             ),
             GButton(
               icon: Icons.assignment,
-              text: 'Actividades',
+              text: 'Tareas',
               iconActiveColor: Colors.white,
               textColor: Colors.white,
             ),

@@ -96,14 +96,14 @@ class _MaestroPagesState extends State<MaestroPages> {
               textColor: Colors.white,
             ),
             GButton(
-              icon: Icons.assignment,
-              text: 'Tareas',
+              icon: Icons.all_inbox,
+              text: 'Pictograms',
               iconActiveColor: Colors.white,
               textColor: Colors.white,
             ),
             GButton(
-              icon: Icons.chat,
-              text: 'Pictogramas',
+              icon: Icons.generating_tokens_rounded,
+              text: 'Generador',
               iconActiveColor: Colors.white,
               textColor: Colors.white,
             ),
