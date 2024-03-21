@@ -92,7 +92,7 @@ class _MainScreenState extends State<MainScreen> {
                         Text(
                           'Hola ${widget.nombre}👋',
                           style: TextStyle(
-                            fontSize: 32,
+                            fontSize: 25,
                             fontWeight: FontWeight.bold,
                             height: 1,
                           ),
@@ -122,7 +122,9 @@ class _MainScreenState extends State<MainScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => PagePictograms(nombre: widget.nombre,)),
+                              builder: (context) => PagePictograms(
+                                    nombre: widget.nombre,
+                                  )),
                         );
                       },
                     ),
@@ -136,7 +138,12 @@ class _MainScreenState extends State<MainScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ActivityPage( nombre: widget.nombre, instituto: widget.instituto,  grado: widget.grado, grupo: widget.grupo,)),
+                              builder: (context) => ActivityPage(
+                                    nombre: widget.nombre,
+                                    instituto: widget.instituto,
+                                    grado: widget.grado,
+                                    grupo: widget.grupo,
+                                  )),
                         );
                       },
                     ),

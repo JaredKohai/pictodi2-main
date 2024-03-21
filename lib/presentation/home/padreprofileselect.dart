@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pictodi2/presentation/home/ninopage.dart';
+import 'package:pictodi2/presentation/home/padrepage/init.dart';
 
 class PadresPages extends StatelessWidget {
   final String nombre;
@@ -51,6 +52,11 @@ class PadresPages extends StatelessWidget {
                   name: nombrePadre,
                   size: 100.0,
                   onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => PadresHome(currentUserData: data),
+                      ),
+                    );
                     _buscarDatosHijo(nombrePadre, context);
                   },
                 ),

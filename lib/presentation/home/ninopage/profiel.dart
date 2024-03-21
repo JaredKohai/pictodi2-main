@@ -1,9 +1,15 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pictodi2/presentation/authentication/login.dart';
 
-class PerfilPage extends StatelessWidget {
+class PerfilPage extends StatefulWidget {
   final String nombre;
   final String instituto;
   final String diagnostico;
@@ -11,6 +17,7 @@ class PerfilPage extends StatelessWidget {
   final String grado;
   final String grupo;
   final String gravedad;
+
   const PerfilPage({
     Key? key,
     required this.nombre,
@@ -23,6 +30,133 @@ class PerfilPage extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _PerfilPageState createState() => _PerfilPageState();
+}
+
+class _PerfilPageState extends State<PerfilPage> {
+  File? _image;
+  String? _profilePictureUrl;
+  late SharedPreferences _prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPrefs();
+    _loadProfilePictureUrl();
+  }
+
+  Future<void> _initPrefs() async {
+    _prefs = await SharedPreferences.getInstance();
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      String? imagePath = _prefs.getString('profileImagePath_$userId');
+      if (imagePath != null) {
+        setState(() {
+          _image = File(imagePath);
+        });
+      }
+    }
+  }
+
+  Future<void> _loadProfilePictureUrl() async {
+    try {
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+      DocumentSnapshot<Map<String, dynamic>> userData = await FirebaseFirestore
+          .instance
+          .collection('niños')
+          .doc(userId)
+          .get();
+
+      setState(() {
+        if (userData.exists) {
+          _profilePictureUrl = userData.data()?['profilePicture'];
+        } else {
+          _profilePictureUrl = null;
+        }
+      });
+    } catch (e) {
+      print('Error loading profile picture URL: $e');
+    }
+  }
+
+  Future getImageFromGallery() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+        String userId = FirebaseAuth.instance.currentUser!.uid;
+        _prefs.setString('profileImagePath_$userId', pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future getImageFromCamera() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+        String userId = FirebaseAuth.instance.currentUser!.uid;
+        _prefs.setString('profileImagePath_$userId', pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future<void> _uploadProfilePicture() async {
+    try {
+      if (_image == null) {
+        print('No image selected.');
+        return;
+      }
+
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+      Reference ref = FirebaseStorage.instance
+          .ref()
+          .child('profile/$userId/profile_picture.jpg');
+
+      UploadTask uploadTask = ref.putFile(_image!);
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      await FirebaseFirestore.instance
+          .collection('niños')
+          .doc(userId)
+          .update({'profilePicture': downloadUrl});
+
+      setState(() {
+        _profilePictureUrl = downloadUrl;
+      });
+
+      print('Profile picture uploaded successfully.');
+    } catch (e) {
+      print('Error uploading profile picture: $e');
+    }
+  }
+
+  Future<void> _signOut() async {
+    try {
+      // Limpiar preferencias de la imagen de perfil al cerrar sesión
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+      _prefs.remove('profileImagePath_$userId');
+
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+    } catch (e) {
+      print("Error al cerrar sesión: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -30,7 +164,7 @@ class PerfilPage extends StatelessWidget {
           'Perfil',
           style: GoogleFonts.openSans(),
         ),
-        elevation: 0, // Ajusta la elevación a 0 para eliminar la sombra
+        elevation: 0,
       ),
       body: Center(
         child: Padding(
@@ -38,7 +172,6 @@ class PerfilPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // Foto
               Stack(
                 children: [
                   Container(
@@ -46,10 +179,15 @@ class PerfilPage extends StatelessWidget {
                     width: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: AssetImage('assets/profile_image.png'),
-                        fit: BoxFit.cover,
-                      ),
+                      image: _image != null
+                          ? DecorationImage(
+                              image: FileImage(_image!),
+                              fit: BoxFit.cover,
+                            )
+                          : DecorationImage(
+                              image: AssetImage('assets/profile_image.png'),
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                   Positioned(
@@ -60,7 +198,39 @@ class PerfilPage extends StatelessWidget {
                         Icons.camera_alt,
                         size: 30,
                       ),
-                      onTap: () {},
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Seleccionar imagen"),
+                              content: SingleChildScrollView(
+                                child: ListBody(
+                                  children: <Widget>[
+                                    GestureDetector(
+                                      child: Text("Galería"),
+                                      onTap: () {
+                                        getImageFromGallery();
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                    ),
+                                    GestureDetector(
+                                      child: Text("Cámara"),
+                                      onTap: () {
+                                        getImageFromCamera();
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -68,7 +238,6 @@ class PerfilPage extends StatelessWidget {
               const SizedBox(
                 height: 50,
               ),
-              // Contenedor tipo input para los datos
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -80,43 +249,46 @@ class PerfilPage extends StatelessWidget {
                       ListTile(
                         title: Text('Nombre',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(nombre),
+                        subtitle: Text(widget.nombre),
                       ),
                       ListTile(
                         title: Text('Institución',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(instituto),
+                        subtitle: Text(widget.instituto),
                       ),
-                      // Correo electrónico
-                      // Teléfono
                       ListTile(
                         title: Text('Fecha de nacimiento',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(fecha_nacimiento),
+                        subtitle: Text(widget.fecha_nacimiento),
                       ),
                       ListTile(
                         title: Text('Grado',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(grado),
+                        subtitle: Text(widget.grado),
                       ),
                       ListTile(
                         title: Text('Grupo',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(grupo),
+                        subtitle: Text(widget.grupo),
                       ),
                       ListTile(
                         title: Text('Diagnóstico',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(diagnostico),
+                        subtitle: Text(widget.diagnostico),
                       ),
                       ListTile(
                         title: Text('Gravedad',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(gravedad),
+                        subtitle: Text(widget.gravedad),
                       ),
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _uploadProfilePicture,
+                child: Text('Guardar imagen de perfil'),
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
@@ -134,11 +306,11 @@ class PerfilPage extends StatelessWidget {
                 icon: const Icon(Icons.logout,
                     size: 24, color: Color.fromARGB(255, 255, 255, 255)),
                 label: Text(
-                  'Log Out',
+                  'Cerrar sesión',
                   style: GoogleFonts.openSans().copyWith(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red, // Color de fondo del botón
+                  backgroundColor: Colors.red,
                 ),
               ),
             ],
