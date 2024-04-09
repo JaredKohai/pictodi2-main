@@ -63,6 +63,7 @@ dependencies:
   animated_splash_screen: ^1.3.0
   lucide_icons: ^0.257.0
   image_picker: ^1.0.7
+  dart_openai: ^5.1.0
   
 
 dev_dependencies:
@@ -126,6 +127,10 @@ flutter:
    - assets/spanish-class.png
    - assets/history.png
    - assets/logo.png
+   - assets/biblioteca.jpg
+   - assets/niños.jpg
+   - assets/pictogen.jpg
+   - assets/perfil.jpg
    
 flutter_icons:
   android: true

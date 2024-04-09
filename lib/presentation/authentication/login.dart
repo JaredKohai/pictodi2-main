@@ -122,8 +122,11 @@ class _LoginPageState extends State<LoginPage> {
             grado = userDoc['grado'];
             grupo = userDoc['grupo'];
           }
-          // Muestra el nombre del usuario
-          print('¡Bienvenido, $nombre!, asignaturas: $asignaturas');
+          if (permiso == 'padre') {
+            List<dynamic> hijosDynamic = userDoc['hijos'];
+            asignaturas = hijosDynamic.map((e) => e.toString()).toList();
+          }
+
 
           String loginname = nombre;
 
@@ -150,8 +153,9 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => PadresPages(
+                  builder: (context) => PadrePage(
                         nombre: nombre,
+                        instituto: instituto,
                       )),
             );
           } else if (permiso == 'psicologo') {

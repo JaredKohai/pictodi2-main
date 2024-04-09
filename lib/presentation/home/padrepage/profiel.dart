@@ -26,77 +26,33 @@ class PerfilPage extends StatefulWidget {
 class _PerfilPageState extends State<PerfilPage> {
   File? _image;
   String? _profilePictureUrl;
-  late SharedPreferences _prefs;
+  List<String> hijos = []; // Variable para almacenar la lista de hijos
 
-  @override
-  void initState() {
-    super.initState();
-    _initPrefs();
-    _loadProfilePictureUrl();
-  }
-
-  Future<void> _initPrefs() async {
-    _prefs = await SharedPreferences.getInstance();
-    String? userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      String? imagePath = _prefs.getString('profileImagePath_$userId');
-      if (imagePath != null) {
-        setState(() {
-          _image = File(imagePath);
-        });
-      }
-    }
-  }
-
-  Future<void> _loadProfilePictureUrl() async {
+  Future<void> _loadChildren() async {
     try {
       String userId = FirebaseAuth.instance.currentUser!.uid;
       DocumentSnapshot<Map<String, dynamic>> userData = await FirebaseFirestore
           .instance
-          .collection('directores')
+          .collection('padres')
           .doc(userId)
           .get();
 
       setState(() {
         if (userData.exists) {
-          _profilePictureUrl = userData.data()?['profilePicture'];
+          hijos = List<String>.from(userData.data()?['hijos'] ?? []);
         } else {
-          _profilePictureUrl = null;
+          hijos = [];
         }
       });
     } catch (e) {
-      print('Error loading profile picture URL: $e');
+      print('Error loading children: $e');
     }
   }
 
-  Future getImageFromGallery() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-        String userId = FirebaseAuth.instance.currentUser!.uid;
-        _prefs.setString('profileImagePath_$userId', pickedFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
-  }
-
-  Future getImageFromCamera() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.camera);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-        String userId = FirebaseAuth.instance.currentUser!.uid;
-        _prefs.setString('profileImagePath_$userId', pickedFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadChildren(); // Cargar la lista de hijos al iniciar la página
   }
 
   Future<void> _uploadProfilePicture() async {
@@ -116,7 +72,7 @@ class _PerfilPageState extends State<PerfilPage> {
       String downloadUrl = await snapshot.ref.getDownloadURL();
 
       await FirebaseFirestore.instance
-          .collection('directores')
+          .collection('padres')
           .doc(userId)
           .update({'profilePicture': downloadUrl});
 
@@ -132,8 +88,8 @@ class _PerfilPageState extends State<PerfilPage> {
 
   Future<void> _signOut() async {
     try {
-      // Limpiar preferencias de la imagen de perfil al cerrar sesión
       String userId = FirebaseAuth.instance.currentUser!.uid;
+      SharedPreferences _prefs = await SharedPreferences.getInstance();
       _prefs.remove('profileImagePath_$userId');
 
       await FirebaseAuth.instance.signOut();
@@ -144,6 +100,40 @@ class _PerfilPageState extends State<PerfilPage> {
     } catch (e) {
       print("Error al cerrar sesión: $e");
     }
+  }
+
+  Future getImageFromGallery() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+        String userId = FirebaseAuth.instance.currentUser!.uid;
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setString('profileImagePath_$userId', pickedFile.path);
+        });
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  Future getImageFromCamera() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+        String userId = FirebaseAuth.instance.currentUser!.uid;
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setString('profileImagePath_$userId', pickedFile.path);
+        });
+      } else {
+        print('No image selected.');
+      }
+    });
   }
 
   @override
@@ -174,10 +164,15 @@ class _PerfilPageState extends State<PerfilPage> {
                               image: FileImage(_image!),
                               fit: BoxFit.cover,
                             )
-                          : DecorationImage(
-                              image: AssetImage('assets/profile_image.png'),
-                              fit: BoxFit.cover,
-                            ),
+                          : _profilePictureUrl != null
+                              ? DecorationImage(
+                                  image: NetworkImage(_profilePictureUrl!),
+                                  fit: BoxFit.cover,
+                                )
+                              : DecorationImage(
+                                  image: AssetImage('assets/profile_image.png'),
+                                  fit: BoxFit.cover,
+                                ),
                     ),
                   ),
                   Positioned(
@@ -246,6 +241,14 @@ class _PerfilPageState extends State<PerfilPage> {
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(widget.instituto),
                       ),
+                      ListTile(
+                        title: Text('Hijos',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: hijos.map((hijo) => Text(hijo)).toList(),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -257,17 +260,7 @@ class _PerfilPageState extends State<PerfilPage> {
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
-                onPressed: () async {
-                  try {
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );
-                  } catch (e) {
-                    print("Error al cerrar sesión: $e");
-                  }
-                },
+                onPressed: _signOut,
                 icon: const Icon(Icons.logout,
                     size: 24, color: Color.fromARGB(255, 255, 255, 255)),
                 label: Text(

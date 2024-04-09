@@ -13,10 +13,15 @@ class PerfilPage extends StatefulWidget {
   final String nombre;
   final String instituto;
 
+  final String grado;
+  final String grupo;
+
   const PerfilPage({
     Key? key,
     required this.nombre,
     required this.instituto,
+    required this.grado,
+    required this.grupo,
   }) : super(key: key);
 
   @override
@@ -53,7 +58,7 @@ class _PerfilPageState extends State<PerfilPage> {
       String userId = FirebaseAuth.instance.currentUser!.uid;
       DocumentSnapshot<Map<String, dynamic>> userData = await FirebaseFirestore
           .instance
-          .collection('directores')
+          .collection('profesores')
           .doc(userId)
           .get();
 
@@ -116,7 +121,7 @@ class _PerfilPageState extends State<PerfilPage> {
       String downloadUrl = await snapshot.ref.getDownloadURL();
 
       await FirebaseFirestore.instance
-          .collection('directores')
+          .collection('profesores')
           .doc(userId)
           .update({'profilePicture': downloadUrl});
 
@@ -245,6 +250,11 @@ class _PerfilPageState extends State<PerfilPage> {
                         title: Text('Institución',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(widget.instituto),
+                      ),
+                      ListTile(
+                        title: Text('Grado y grupo que le da clases:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(widget.grado + widget.grupo),
                       ),
                     ],
                   ),

@@ -67,10 +67,29 @@ class _SplashScreenState extends State<SplashScreen>
           return Stack(
             alignment: Alignment.center,
             children: [
-              Center(
+              Positioned(
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Transform.rotate(
+                      angle:
+                          _animation.value * 6.3, // Girar el logo (360 grados)
+                      child: Opacity(
+                        opacity: _animation.value,
+                        child: Image.asset(
+                          'assets/logo.png', // Ruta de tu logo
+                          width: 100, // Ancho del logo
+                          height: 100, // Alto del logo
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
                     DefaultTextStyle(
                       style: TextStyle(
                         fontSize: 36.0,
@@ -93,21 +112,7 @@ class _SplashScreenState extends State<SplashScreen>
                     SizedBox(
                       height: 20,
                     ),
-                    CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
                   ],
-                ),
-              ),
-              Transform.rotate(
-                angle: _animation.value * 6.3, // Girar el logo (360 grados)
-                child: Opacity(
-                  opacity: _animation.value,
-                  child: Image.asset(
-                    'assets/logo.png', // Ruta de tu logo
-                    width: 50, // Ancho del logo
-                    height: 50, // Alto del logo
-                  ),
                 ),
               ),
             ],

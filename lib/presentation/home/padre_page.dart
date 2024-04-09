@@ -1,138 +1,105 @@
-// ignore_for_file: unused_local_variable
-
 import 'package:flutter/material.dart';
-import 'package:convex_bottom_bar/convex_bottom_bar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../authentication/login.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:pictodi2/presentation/home/maestropage/iagen.dart';
+import 'padrepage/iniciopage.dart';
+import 'maestropage/iagen.dart';
+import 'padrepage/profiel.dart';
+import 'padrepage/DashboardVocabulary.dart';
 
-class PadrePage extends StatelessWidget {
-  final String nombre; // Agrega esta línea
+class PadrePage extends StatefulWidget {
+  final String nombre;
+  final String instituto;
 
-  const PadrePage({Key? key, required this.nombre}) : super(key: key);
+  const PadrePage({
+    Key? key,
+    required this.nombre,
+    required this.instituto,
+  }) : super(key: key);
 
- Future<void> _showGeneradorConfirmation(BuildContext context) async {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Ir al Generador'),
-          content: Text('¿Quieres ir al generador de pictogramas?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
-              child: Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
-                // Navegar a la página GeneradorPage
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
-              },
-              child: Text('Aceptar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  @override
+  State<PadrePage> createState() => _PadrePageState();
+}
 
-  Future<void> _showLogoutConfirmation(BuildContext context) async {
-    return showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                title: const Text('¿Quieres cerrar sesión?'),
-                onTap: () async {
-                  // Cerrar sesión y navegar a la pantalla de inicio de sesión
-                  await FirebaseAuth.instance.signOut();
-                  Navigator.pop(context); // Cerrar el menú
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+class _PadrePageState extends State<PadrePage> {
+  int _currentIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  late List<Widget> screens;
+
+  final colors = [
+    const Color(0xFF60A9CD),
+    Colors.purple,
+    Colors.green,
+    Colors.red,
+  ];
+
+  // ignore: unused_field
+  double _scaleFactor = 1.0;
+
+  @override
+  void initState() {
+    super.initState();
+    screens = [
+      InicioPage(nombre: widget.nombre,),
+      VocabularyDashboard(),
+      GeneradorIA(),
+      PerfilPage(
+        nombre: widget.nombre,
+        instituto: widget.instituto,
+      )
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Bienvenido, $nombre'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              // Mostrar confirmación antes de ir al generador
-              _showGeneradorConfirmation(context);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.account_circle_outlined),
-            onPressed: () {
-              // Mostrar menú de confirmación para cerrar sesión
-              _showLogoutConfirmation(context);
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      key: _scaffoldKey,
+      body: Stack(
         children: [
-          SizedBox(height: 20),
-          Text(
-            'Actividades Pendientes',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10),
-          Container(
-            width: 150,
-            height: 150,
-            color: Colors.grey[300],
-          ),
-          SizedBox(height: 20),
-          const Text('Texto o descripción de las actividades pendientes'),
-          SizedBox(height: 20),
-          Expanded(
-            child: Center(
-              child: Text('Bienvenido!, $nombre'),
-            ),
-          ),
+          screens[_currentIndex],
         ],
       ),
-      bottomNavigationBar: ConvexAppBar(
-        style: TabStyle.reactCircle,
-        items: [
-          TabItem(icon: Icons.home, title: 'Inicio'),
-          TabItem(icon: Icons.search, title: 'Pictogramas'),
-          TabItem(icon: Icons.assignment, title: 'Actividades'),
-          TabItem(icon: Icons.account_circle_outlined, title: 'Cuenta'),
-        ],
-        onTap: (index) {
-          // Maneja la acción cuando se toca un ítem
-          // Puedes agregar lógica adicional aquí según el índice seleccionado
-          if (index == 1) {
-            // Mostrar confirmación antes de ir al generador
-            _showGeneradorConfirmation(context);
-          } else if (index == 3) {
-            // Mostrar menú de confirmación para cerrar sesión
-            _showLogoutConfirmation(context);
-          }
-        },
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        margin: const EdgeInsets.only(bottom: 10),
+        child: GNav(
+          tabBackgroundColor: colors[0],
+          selectedIndex: _currentIndex,
+          tabBorderRadius: 10,
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          onTabChange: (index) {
+            setState(() {
+              _currentIndex = index;
+              _scaleFactor = 1.0;
+            });
+          },
+          tabs: const [
+            GButton(
+              icon: Icons.groups_2,
+              text: 'Clases',
+              iconActiveColor: Colors.white,
+              textColor: Colors.white,
+            ),
+            GButton(
+              icon: Icons.all_inbox,
+              text: 'Pictogramas',
+              iconActiveColor: Colors.white,
+              textColor: Colors.white,
+            ),
+            GButton(
+              icon: Icons.generating_tokens_rounded,
+              text: 'Generador',
+              iconActiveColor: Colors.white,
+              textColor: Colors.white,
+            ),
+            GButton(
+              icon: Icons.person,
+              text: 'Perfil',
+              iconActiveColor: Colors.white,
+              textColor: Colors.white,
+            ),
+          ],
+        ),
       ),
     );
   }

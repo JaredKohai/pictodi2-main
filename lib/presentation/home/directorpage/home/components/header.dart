@@ -33,7 +33,7 @@ class HeaderScreen extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  'Hola $instituto', // Mostrar el nombre proporcionado
+                  'Bienvenido!', // Mostrar el nombre proporcionado
                   style: Theme.of(context).textTheme.headline6?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

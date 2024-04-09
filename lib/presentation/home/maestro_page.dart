@@ -4,6 +4,7 @@ import 'package:pictodi2/presentation/home/maestropage/iagen.dart';
 import 'maestropage/activities.dart';
 import 'maestropage/class/classes.dart';
 import 'maestropage/notifications.dart';
+import 'maestropage/profiel.dart';
 
 class MaestroPages extends StatefulWidget {
   final String nombre;
@@ -45,7 +46,6 @@ class _MaestroPagesState extends State<MaestroPages> {
   void initState() {
     super.initState();
     screens = [
-      const NotificationClass(),
       ClassesTabContent(
           nombre: widget.nombre,
           instituto: widget.instituto,
@@ -55,7 +55,10 @@ class _MaestroPagesState extends State<MaestroPages> {
           grado: widget.grado,
           grupo: widget.grupo),
       VocabularyDashboard(),
-      const GeneradorIA()
+      GeneradorIA(),
+      PerfilPage(nombre: widget.nombre,
+          instituto: widget.instituto,grado: widget.grado,
+          grupo: widget.grupo)
     ];
   }
 
@@ -84,12 +87,6 @@ class _MaestroPagesState extends State<MaestroPages> {
           },
           tabs: const [
             GButton(
-              icon: Icons.notifications,
-              text: 'Actividades',
-              iconActiveColor: Colors.white,
-              textColor: Colors.white,
-            ),
-            GButton(
               icon: Icons.groups_2,
               text: 'Clases',
               iconActiveColor: Colors.white,
@@ -97,13 +94,19 @@ class _MaestroPagesState extends State<MaestroPages> {
             ),
             GButton(
               icon: Icons.all_inbox,
-              text: 'Pictograms',
+              text: 'Pictogramas',
               iconActiveColor: Colors.white,
               textColor: Colors.white,
             ),
             GButton(
               icon: Icons.generating_tokens_rounded,
               text: 'Generador',
+              iconActiveColor: Colors.white,
+              textColor: Colors.white,
+            ),
+            GButton(
+              icon: Icons.person,
+              text: 'Perfil',
               iconActiveColor: Colors.white,
               textColor: Colors.white,
             ),
