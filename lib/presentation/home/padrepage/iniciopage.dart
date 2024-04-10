@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'ninospadres.dart';
+import 'package:pictodi2/presentation/home/maestropage/iagen.dart';
+import 'package:pictodi2/presentation/home/padrepage/profiel.dart';
+import 'package:pictodi2/presentation/home/ninopage/vocabulary.dart';
+import 'package:pictodi2/presentation/home/padrepage/ninospadres.dart';
 
 class InicioPage extends StatelessWidget {
   final String nombre;
+  final String instituto;
 
-  const InicioPage({Key? key, required this.nombre}) : super(key: key);
+  const InicioPage({Key? key, required this.nombre, required this.instituto})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Página de Inicio'),
+        title: Text('Inicio'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -19,133 +24,73 @@ class InicioPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                '¡Bienvenido a mi aplicación, $nombre!',
+                '¡Bienvenido a la aplicación, $nombre!',
                 style: TextStyle(fontSize: 24.0),
               ),
               SizedBox(height: 20),
-              Card(
-                elevation: 4,
-                color: Colors.lightBlue[100],
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => NinosPadres(
-                              nombre:
-                                  nombre)), // Navega a la página NiñosPadres.dart
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      FractionallySizedBox(
-                        widthFactor: 1.0,
-                        child: Image.asset(
-                          'assets/niños.jpg',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Inspeccionar Niños',
-                          style: TextStyle(fontSize: 18.0),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              _buildCard(
+                context,
+                'Inspeccionar Niños',
+                'assets/niños.jpg',
+                Colors.lightBlue[100],
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NinosPadres(nombre: nombre),
+                    ),
+                  );
+                },
               ),
               SizedBox(height: 20),
-              Card(
-                elevation: 4,
-                color: Colors.yellow[100],
-                child: InkWell(
-                  onTap: () {
-                    // Aquí puedes añadir la lógica para navegar a la biblioteca de pictogramas
-                  },
-                  child: Column(
-                    children: [
-                      FractionallySizedBox(
-                        widthFactor: 1.0,
-                        child: Image.asset(
-                          'assets/biblioteca.jpg',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Ir a tu biblioteca de pictogramas',
-                          style: TextStyle(fontSize: 18.0),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              Card(
-                elevation: 4,
-                color: Colors.orange[100],
-                child: InkWell(
-                  onTap: () {
-                    // Aquí puedes añadir la lógica para navegar a la página de generación de pictogramas
-                  },
-                  child: Column(
-                    children: [
-                      FractionallySizedBox(
-                        widthFactor: 1.0,
-                        child: Image.asset(
-                          'assets/pictogen.jpg',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Generar Pictogramas',
-                          style: TextStyle(fontSize: 18.0),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              Card(
-                elevation: 4,
-                color: Colors.red[100],
-                child: InkWell(
-                  onTap: () {
-                    // Aquí puedes añadir la lógica para navegar a la página de perfil del padre
-                  },
-                  child: Column(
-                    children: [
-                      FractionallySizedBox(
-                        widthFactor: 1.0,
-                        child: Image.asset(
-                          'assets/perfil.jpg',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Perfil',
-                          style: TextStyle(fontSize: 18.0),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              _buildCard(
+                context,
+                'Generar Pictogramas',
+                'assets/pictogen.jpg',
+                Colors.orange[100],
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          GeneradorIA(), // Cambié a GeneradorIA
+                    ),
+                  );
+                },
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(BuildContext context, String title, String imagePath,
+      Color? color, Function onTap) {
+    return Card(
+      elevation: 4,
+      color: color ??
+          Colors.transparent, // Si color es nulo, usa Colors.transparent
+      child: InkWell(
+        onTap: onTap as void Function()?,
+        child: Column(
+          children: [
+            FractionallySizedBox(
+              widthFactor: 1.0,
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                title,
+                style: TextStyle(fontSize: 18.0),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ),
       ),
     );

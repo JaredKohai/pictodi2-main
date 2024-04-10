@@ -40,7 +40,7 @@ class _PadrePageState extends State<PadrePage> {
   void initState() {
     super.initState();
     screens = [
-      InicioPage(nombre: widget.nombre,),
+      InicioPage(nombre: widget.nombre, instituto: widget.instituto),
       VocabularyDashboard(),
       GeneradorIA(),
       PerfilPage(

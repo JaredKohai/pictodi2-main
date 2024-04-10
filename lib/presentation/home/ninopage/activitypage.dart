@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pictodi2/presentation/home/ninopage/act_memorama.dart';
+import 'package:pictodi2/presentation/home/ninopage/act_unir.dart';
+import 'package:pictodi2/presentation/home/ninopage/allactivitypage.dart';
+
+void main() {
+  runApp(ActivityPage(
+    nombre: 'Juan',
+    instituto: 'Instituto XYZ',
+    grado: '5',
+    grupo: 'A',
+  ));
+}
 
 class ActivityPage extends StatelessWidget {
   final String nombre;
@@ -62,6 +74,22 @@ class ActivityPage extends StatelessWidget {
               ),
             ],
           ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AllActivitiesPage(
+                    nombre: nombre,
+                    instituto: instituto,
+                    grado: grado,
+                    grupo: grupo,
+                  ),
+                ),
+              );
+            },
+            child: Icon(Icons.view_list),
+          ),
         ),
       ),
     );
@@ -83,6 +111,74 @@ class TaskList extends StatelessWidget {
     required this.grado,
     required this.grupo,
   }) : super(key: key);
+
+  void _showConfirmationDialog(BuildContext context,
+      DocumentSnapshot activitySnapshot, String actividadId) {
+    List<String> imagenesSeleccionadas =
+        List<String>.from(activitySnapshot['imagenes_seleccionadas']);
+    String tipoActividad =
+        activitySnapshot['tipo']; // Obtener el tipo de actividad
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('¿Quieres empezar la actividad?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _registrarActividadCompletada(activitySnapshot,
+                  actividadId); // Llamada al método para registrar la actividad completada
+              if (tipoActividad == 'Memorama') {
+                // Verificar el tipo de actividad
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ActMemoramaPage(
+                      imagenesSeleccionadas: imagenesSeleccionadas,
+                      nombre: nombre,
+                    ),
+                  ),
+                );
+              } else if (tipoActividad == 'Unir') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UnirPage(
+                      imagenesSeleccionadas: imagenesSeleccionadas,
+                      nombre: nombre,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Text('Empezar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _registrarActividadCompletada(
+      DocumentSnapshot activitySnapshot, String actividadId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('actividades_completadas')
+          .doc(actividadId)
+          .update({
+        'alumnos': FieldValue.arrayUnion([nombre]),
+      });
+
+      print('Actividad completada registrada exitosamente para $nombre.');
+    } catch (e) {
+      print('Error al registrar la actividad completada: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +246,16 @@ class TaskList extends StatelessWidget {
               isPending: status == TaskStatus.pending,
               isOverdue: status == TaskStatus.overdue,
             );
-            return TaskCard(task: task, status: status);
+            return GestureDetector(
+              onTap: () {
+                if (status == TaskStatus.pending ||
+                    status == TaskStatus.overdue) {
+                  _showConfirmationDialog(
+                      context, activity, filteredActivities[index].id);
+                }
+              },
+              child: TaskCard(task: task, status: status),
+            );
           },
         );
       },
@@ -173,8 +278,6 @@ class TaskList extends StatelessWidget {
     }
   }
 }
-
-enum TaskStatus { completed, pending, overdue }
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -231,11 +334,4 @@ class Task {
   });
 }
 
-void main() {
-  runApp(ActivityPage(
-    nombre: 'Juan',
-    instituto: 'Instituto XYZ',
-    grado: '5',
-    grupo: 'A',
-  ));
-}
+enum TaskStatus { completed, pending, overdue }

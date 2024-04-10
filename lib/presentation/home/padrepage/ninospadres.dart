@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pictodi2/presentation/home/ninopage/act_memorama.dart';
+import 'package:pictodi2/presentation/home/ninopage/act_unir.dart';
 
 class NinosPadres extends StatefulWidget {
   final String nombre;
@@ -21,7 +23,6 @@ class _NinosPadresState extends State<NinosPadres> {
 
   Future<void> obtenerDatosHijos() async {
     try {
-      // Obtener la referencia al documento del padre que tiene el mismo nombre
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
           await FirebaseFirestore.instance
               .collection('padres')
@@ -29,16 +30,11 @@ class _NinosPadresState extends State<NinosPadres> {
               .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // Obtener los datos del padre
         Map<String, dynamic> padreData =
             querySnapshot.docs.first.data() as Map<String, dynamic>;
-
-        // Obtener la lista de hijos del padre
         List<dynamic> hijos = padreData['hijos'] ?? [];
 
-        // Iterar sobre cada hijo para obtener su información
         for (var hijoNombre in hijos) {
-          // Obtener la referencia al documento del hijo
           QuerySnapshot<Map<String, dynamic>> hijoSnapshot =
               await FirebaseFirestore.instance
                   .collection('niños')
@@ -46,11 +42,9 @@ class _NinosPadresState extends State<NinosPadres> {
                   .get();
 
           if (hijoSnapshot.docs.isNotEmpty) {
-            // Obtener los datos del hijo
             Map<String, dynamic> hijoData =
                 hijoSnapshot.docs.first.data() as Map<String, dynamic>;
 
-            // Agregar la información del hijo a la lista
             setState(() {
               _listaHijos.add({
                 'nombre': hijoData['nombre'],
@@ -87,7 +81,6 @@ class _NinosPadresState extends State<NinosPadres> {
                 style: TextStyle(fontSize: 24.0),
               ),
               SizedBox(height: 20),
-              // Mostrar la información de los hijos en tarjetas
               ListView.builder(
                 shrinkWrap: true,
                 itemCount: _listaHijos.length,
@@ -100,7 +93,7 @@ class _NinosPadresState extends State<NinosPadres> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Información del hijo ${index + 1}:',
+                            'Hijo ${index + 1}:',
                             style: TextStyle(
                                 fontSize: 18.0, fontWeight: FontWeight.bold),
                           ),
@@ -133,6 +126,25 @@ class _NinosPadresState extends State<NinosPadres> {
                             'Gravedad: ${_listaHijos[index]['gravedad']}',
                             style: TextStyle(fontSize: 16.0),
                           ),
+                          SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ClassDetailPage(
+                                    className:
+                                        'Nombre de la clase', // Inserta el nombre de la clase aquí
+                                    instituto: _listaHijos[index]['instituto'],
+                                    grado: _listaHijos[index]['grado'],
+                                    grupo: _listaHijos[index]['grupo'],
+                                    nombre: _listaHijos[index]['nombre'],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text('Ver actividades'),
+                          ),
                         ],
                       ),
                     ),
@@ -144,5 +156,156 @@ class _NinosPadresState extends State<NinosPadres> {
         ),
       ),
     );
+  }
+}
+
+class ClassDetailPage extends StatelessWidget {
+  final String className;
+  final String nombre;
+  final String instituto;
+  final String grado;
+  final String grupo;
+
+  const ClassDetailPage({
+    Key? key,
+    required this.className,
+    required this.instituto,
+    required this.grado,
+    required this.grupo,
+    required this.nombre,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    print('Buscando actividades para la clase $className...');
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(className),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('actividades')
+            .where('grado', isEqualTo: grado)
+            .where('grupo', isEqualTo: grupo)
+            .where('instituto', isEqualTo: instituto)
+            .where('materia', isEqualTo: className) // Filtrar por asignatura
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          List<DocumentSnapshot> allActivities = snapshot.data!.docs;
+
+          // Filtrar actividades que no han sido completadas por el alumno
+          List<DocumentSnapshot> activities = allActivities.where((activity) {
+            List<dynamic> alumnos = activity['alumnos'];
+            return !alumnos.contains(nombre);
+          }).toList();
+
+          if (activities.isEmpty) {
+            return Center(child: Text('No hay actividades disponibles.'));
+          }
+
+          return ListView.builder(
+            itemCount: activities.length,
+            itemBuilder: (context, index) {
+              var activityData = activities[index];
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GestureDetector(
+                  onTap: () {
+                    _showConfirmationDialog(
+                        context, activityData, activities[index].id);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.0),
+                      color: Colors.blue,
+                    ),
+                    child: ListTile(
+                      title: Text(activityData['titulo'],
+                          style: TextStyle(color: Colors.white)),
+                      subtitle: Text(activityData['instrucciones'],
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _showConfirmationDialog(BuildContext context,
+      DocumentSnapshot activitySnapshot, String actividadId) {
+    List<String> imagenesSeleccionadas =
+        List<String>.from(activitySnapshot['imagenes_seleccionadas']);
+    String tipoActividad =
+        activitySnapshot['tipo']; // Obtener el tipo de actividad
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('¿Quieres empezar la actividad?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _registrarActividadCompletada(activitySnapshot, actividadId);
+              if (tipoActividad == 'Memorama') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ActMemoramaPage(
+                      imagenesSeleccionadas: imagenesSeleccionadas,
+                      nombre: nombre,
+                    ),
+                  ),
+                );
+              } else if (tipoActividad == 'Unir') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UnirPage(
+                      imagenesSeleccionadas: imagenesSeleccionadas,
+                      nombre: nombre,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Text('Empezar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _registrarActividadCompletada(
+      DocumentSnapshot activitySnapshot, String actividadId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('actividades_completadas')
+          .doc(actividadId)
+          .update({
+        'alumnos': FieldValue.arrayUnion([nombre]),
+      });
+
+      print('Actividad completada registrada exitosamente para $nombre.');
+    } catch (e) {
+      print('Error al registrar la actividad completada: $e');
+    }
   }
 }
