@@ -320,15 +320,3 @@ class _CustomFormState extends State<CustomForm> {
   }
 }
 
-void main() {
-  runApp(MaterialApp(
-    home: CustomForm(
-      nombre: 'Nombre del profesor',
-      instituto: 'Nombre del instituto',
-      grado: 'Grado',
-      grupo: 'Grupo',
-      asignaturas: ['Asignatura 1', 'Asignatura 2'],
-      nombreMateria: 'Nombre de la clase', // Pasar el nombre de la materia
-    ),
-  ));
-}

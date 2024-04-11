@@ -41,7 +41,7 @@ class Test extends StatefulWidget {
 class _TestState extends State<Test> {
   final TextEditingController _queryController = TextEditingController();
   final StabilityAI _ai = StabilityAI();
-  final String apiKey = 'sk-HtvnokVHD1QWMb3vXIOm3Rmoe3YiqoXis1ZwWr6z2vzYY4yP';
+  final String apiKey = 'sk-00v5uOGHOkrcJWQqkDml7QM8FIuWmUCe29A2rlFWAgiepKCE18';
   final ImageAIStyle imageAIStyle = ImageAIStyle.sovietCartoon;
   bool run = false;
 
